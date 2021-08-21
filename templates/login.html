@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href= "{{url_for('static',filename='bootstrap.min.css')}}" type="text/css" rel="stylesheet">
+  <link href= "{{url_for('static',filename='jumbotron-narrow.css')}}" type="text/css" rel="stylesheet">
+  <link href= "{{url_for('static',filename='signup.css')}}" type="text/css" rel="stylesheet">
+</head>
+<body>
+<div>
+    <h1>Insert your data</h1>
+    <p class="lead" style="color:red;font-weight: bold;">{{error}}</p>
+    <form class="form-signin" action="/validate_login" method="post">
+        <label for="input_username" class="sr-only">Username</label>
+        <input type="name" name="input_username" id="input_username" class="form-control" placeholder="Username" required autofocus>
+        <label for="input_password" class="sr-only">Password</label>
+        <input type="password" name="input_password" id="input_password" class="form-control" placeholder="Password" required>
+        <button id="btnSignIn" class="btn btn-lg btn-success" type="submit">Login</button>
+    </form>
+</div>
+</body>
+</html>
