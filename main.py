@@ -1,10 +1,10 @@
-import flask
-from flask import request, session, redirect, render_template
-import mysql.connector
 import configparser
-from hashlib import sha256
-from flask import escape
 from datetime import timedelta
+from hashlib import sha256
+
+import flask
+import mysql.connector
+from flask import request, session, redirect, render_template, escape
 
 app = flask.Flask(__name__)
 
@@ -35,24 +35,32 @@ def login():
 # Event Manager's page
 @app.route("/event_manager")
 def event_manager():
+    if session.get('role') != 'event_manager' or session.get('logged_in') is False:
+        return redirect("https://www.youtube.com/watch?v=HO8ctP_QNZc&ab_channel=LEZZO", code=302)
     return render_template('event_manager.html')
 
 
 # Reseller's page
 @app.route("/reseller")
 def reseller():
+    if session.get('role') != 'reseller' or session.get('logged_in') is False:
+        return redirect("https://www.youtube.com/watch?v=HO8ctP_QNZc&ab_channel=LEZZO", code=302)
     return render_template('reseller.html')
 
 
 # Validator's page
 @app.route("/validator")
 def validator():
+    if session.get('role') != 'validator' or session.get('logged_in') is False:
+        return redirect("https://www.youtube.com/watch?v=HO8ctP_QNZc&ab_channel=LEZZO", code=302)
     return render_template('validator.html')
 
 
 # Buyer's page
 @app.route("/buyer")
 def buyer():
+    if session.get('role') != 'buyer' or session.get('logged_in') is False:
+        return redirect("https://www.youtube.com/watch?v=HO8ctP_QNZc&ab_channel=LEZZO", code=302)
     return render_template('buyer.html')
 
 
@@ -82,6 +90,7 @@ def validate_login():
 
     if result is not None:
         if username == result[0] and hash_password == result[1]:
+            session['logged_in'] = True
             session['user'] = result[0]
             session['password'] = result[1]
             session['role'] = result[2]
