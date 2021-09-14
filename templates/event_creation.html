@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href= "{{url_for('static',filename='bootstrap.min.css')}}" type="text/css" rel="stylesheet">
+  <link href= "{{url_for('static',filename='jumbotron-narrow.css')}}" type="text/css" rel="stylesheet">
+  <link href= "{{url_for('static',filename='signup.css')}}" type="text/css" rel="stylesheet">
+</head>
+<body>
+<div>
+    <h1>Insert event's informations</h1>
+    <p class="lead" style="color:red;font-weight: bold;">{{error}}</p>
+    <form class="form-signin" action="/create_event" method="post">
+        <label for="input_name" class="sr-only">Name</label>
+        <input type="name" name="input_name" id="input_name" class="form-control" placeholder="Name" required autofocus>
+        <label for="input_date" class="sr-only">Date</label>
+        <input type="date" name="input_date" id="input_date" class="form-control" placeholder="Date" required>
+        <label for="input_availableseats" class="sr-only">Available seats</label>
+        <input type="value" name="input_availableseats" id="input_availableseats" class="form-control" placeholder="Available seats" required>
+        <button id="btnSignIn" class="btn btn-lg btn-success" type="submit">Login</button>
+    </form>
+</div>
+</body>
+</html>

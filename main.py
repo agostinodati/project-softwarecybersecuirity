@@ -111,6 +111,26 @@ def validate_login():
         return render_template('login.html', error='The credentials entered are incorrect. Try again.')
 
 
+# Event Creation page
+@app.route("/event_creation")
+def event_creation():
+    return render_template('event_creation.html')
+
+
+# Create Event
+@app.route("/event_create", methods=['POST'])
+def create_event():
+    if session.get('role') != 'event_manager' or session.get('logged_in') is False:
+        return redirect("https://www.youtube.com/watch?v=HO8ctP_QNZc&ab_channel=LEZZO", code=302)
+    # TODO: Bisogna interfacciare il sito con la blockchain. In particolare, bisogna compilare lo Smart Contract,
+    #  farne il deploy con i dati inseriti dall'Event Man., ottenere l'indirizzo (salvarlo in una lista da
+    #  condividere con tutti con getter e setter) e poi usare quell'indirizzo per ottenere i dati nella sezione dgli
+    #  eventi disponibili del reseller.
+    event_name = str(escape(request.form['input_name']))
+    event_date = str(escape(request.form['input_date']))
+    event_seats = str(escape(request.form['input_availableseats']))
+
+
 if __name__ == "__main__":
     app.config['ENV'] = 'development'
     app.config['DEBUG'] = True
