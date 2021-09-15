@@ -1,8 +1,8 @@
 from solcx import install_solc
 
 from web3 import Web3
-from web3.middleware import local_filter_middleware
-from solcx import compile_source, compile_files
+from web3.middleware import geth_poa_middleware
+from solcx import compile_files
 import configparser
 
 sc_new_event = './smart_contracts/New_event.sol'
@@ -24,7 +24,9 @@ def deploy_smart_contract_new_event(name_event, date_event, available_seats_even
 
     # web3 instance
     w3 = Web3(Web3.HTTPProvider(config[username]["address_node"]))
-    #w3.middleware_onion.add(local_filter_middleware)
+
+    # inject the poa compatibility middleware to the innermost layer, for the error about dimension block
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     if w3.isConnected():
         print("Connected to the blockchain.")
