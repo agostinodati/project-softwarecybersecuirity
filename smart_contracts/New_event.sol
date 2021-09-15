@@ -5,7 +5,6 @@ contract new_event{
   string private name;
   string private date;
   int256 private available_seats;
-  address[] seats_buyers;
 
   constructor(string memory x, string memory y, int256 z) public {
                        name = x;
@@ -13,7 +12,15 @@ contract new_event{
                        available_seats = z;
   }
 
-  function get_name() public view returns (string memory){
+  function set_name(string memory x) public {
+    name = x;
+  }
+
+  function set_date(string memory x) public {
+    date = x;
+  }
+
+  function get_name() public view returns (string memory ){
     return name;
   }
 

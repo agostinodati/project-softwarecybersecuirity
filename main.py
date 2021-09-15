@@ -6,6 +6,8 @@ import flask
 import mysql.connector
 from flask import request, session, redirect, render_template, escape
 
+import blockchain_manager
+
 app = flask.Flask(__name__)
 
 # Connect to the database
@@ -36,7 +38,7 @@ def login():
 @app.route("/event_manager")
 def event_manager():
     if session.get('role') != 'event_manager' or session.get('logged_in') is False:
-        return redirect("https://www.youtube.com/watch?v=HO8ctP_QNZc&ab_channel=LEZZO", code=302)
+        return redirect("https://www.youtube.com/watch?v=RvY5ploo1OI&ab_channel=beZ98", code=302)
     return render_template('event_manager.html')
 
 
@@ -44,7 +46,7 @@ def event_manager():
 @app.route("/reseller")
 def reseller():
     if session.get('role') != 'reseller' or session.get('logged_in') is False:
-        return redirect("https://www.youtube.com/watch?v=HO8ctP_QNZc&ab_channel=LEZZO", code=302)
+        return redirect("https://www.youtube.com/watch?v=RvY5ploo1OI&ab_channel=beZ98", code=302)
     return render_template('reseller.html')
 
 
@@ -52,7 +54,7 @@ def reseller():
 @app.route("/validator")
 def validator():
     if session.get('role') != 'validator' or session.get('logged_in') is False:
-        return redirect("https://www.youtube.com/watch?v=HO8ctP_QNZc&ab_channel=LEZZO", code=302)
+        return redirect("https://www.youtube.com/watch?v=RvY5ploo1OI&ab_channel=beZ98", code=302)
     return render_template('validator.html')
 
 
@@ -60,7 +62,7 @@ def validator():
 @app.route("/buyer")
 def buyer():
     if session.get('role') != 'buyer' or session.get('logged_in') is False:
-        return redirect("https://www.youtube.com/watch?v=HO8ctP_QNZc&ab_channel=LEZZO", code=302)
+        return redirect("https://www.youtube.com/watch?v=RvY5ploo1OI&ab_channel=beZ98", code=302)
     return render_template('buyer.html')
 
 
@@ -114,21 +116,25 @@ def validate_login():
 # Event Creation page
 @app.route("/event_creation")
 def event_creation():
+    if session.get('role') != 'event_manager' or session.get('logged_in') is False:
+        return redirect("https://www.youtube.com/watch?v=RvY5ploo1OI&ab_channel=beZ98", code=302)
     return render_template('event_creation.html')
 
 
 # Create Event
 @app.route("/event_create", methods=['POST'])
-def create_event():
+def event_create():
     if session.get('role') != 'event_manager' or session.get('logged_in') is False:
-        return redirect("https://www.youtube.com/watch?v=HO8ctP_QNZc&ab_channel=LEZZO", code=302)
+        return redirect("https://www.youtube.com/watch?v=RvY5ploo1OI&ab_channel=beZ98", code=302)
     # TODO: Bisogna interfacciare il sito con la blockchain. In particolare, bisogna compilare lo Smart Contract,
     #  farne il deploy con i dati inseriti dall'Event Man., ottenere l'indirizzo (salvarlo in una lista da
     #  condividere con tutti con getter e setter) e poi usare quell'indirizzo per ottenere i dati nella sezione dgli
-    #  eventi disponibili del reseller.
-    event_name = str(escape(request.form['input_name']))
-    event_date = str(escape(request.form['input_date']))
-    event_seats = str(escape(request.form['input_availableseats']))
+    #  eventi disponibili del reseller. https://docs.soliditylang.org/en/v0.6.4/contracts.html?highlight=token#creating-contracts
+    name_event = str(escape(request.form['input_name']))
+    date_event = str(escape(request.form['input_date']))
+    seats_event = int(escape(request.form['input_availableseats']))
+
+    blockchain_manager.deploy_smart_contract_new_event(name_event, date_event, seats_event, session['user'])
 
 
 if __name__ == "__main__":
