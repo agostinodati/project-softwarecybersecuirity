@@ -1,5 +1,5 @@
 pragma solidity >0.5.0;
-// SPDX-License-Identifier: AFL-3.0
+
 contract new_event{
 
   string private name;
@@ -20,15 +20,15 @@ contract new_event{
     date = x;
   }
 
-  function get_name() public view returns (string memory ){
+  function get_name() view public returns (string memory ){
     return name;
   }
 
-  function get_date() public view returns (string memory){
+  function get_date() view public returns (string memory){
     return date;
   }
 
-  function get_available_seats() public view returns (int256){
+  function get_available_seats() view public returns (int256){
     return available_seats;
   }
 
@@ -40,6 +40,6 @@ contract new_event{
   function buy_seats(int256 seats_bought) public {
     int256 remainder = get_available_seats() - seats_bought;
     require(remainder >= 0);
-    this.set_available_seats(remainder);
+    set_available_seats(remainder);
   }
 }
