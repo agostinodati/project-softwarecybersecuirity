@@ -5,11 +5,14 @@ contract new_event{
   string private name;
   string private date;
   int256 private available_seats;
+  mapping(address => int256) private reseller_seats_list;
+  mapping(address => int256) private buyer_ticket_list;
 
   constructor(string memory x, string memory y, int256 z) public {
                        name = x;
                        date = y;
                        available_seats = z;
+
   }
 
   function set_name(string memory x) public {
@@ -19,6 +22,14 @@ contract new_event{
   function set_date(string memory x) public {
     date = x;
   }
+
+  //function add_reseller_seats_to_list() public {
+  //  reseller_seats_list[msg.sender] = int256(msg.value);
+  //}
+
+  //function get_reseller_seats(address reseller) view public returns (address){
+  //  return reseller_seats_list[address];
+  //}
 
   function get_name() view public returns (string memory ){
     return name;

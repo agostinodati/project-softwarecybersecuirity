@@ -126,15 +126,17 @@ def event_creation():
 def event_create():
     if session.get('role') != 'event_manager' or session.get('logged_in') is False:
         return redirect("https://www.youtube.com/watch?v=RvY5ploo1OI&ab_channel=beZ98", code=302)
-    # TODO: Bisogna interfacciare il sito con la blockchain. In particolare, bisogna compilare lo Smart Contract,
-    #  farne il deploy con i dati inseriti dall'Event Man., ottenere l'indirizzo (salvarlo in una lista da
-    #  condividere con tutti con getter e setter) e poi usare quell'indirizzo per ottenere i dati nella sezione dgli
-    #  eventi disponibili del reseller. https://docs.soliditylang.org/en/v0.6.4/contracts.html?highlight=token#creating-contracts
+
     name_event = str(escape(request.form['input_name']))
     date_event = str(escape(request.form['input_date']))
-    seats_event = int(escape(request.form['input_availableseats']))
+    seats_event = int(escape(request.form['input_available_seats']))
 
-    blockchain_manager.deploy_smart_contract_new_event(name_event, date_event, seats_event, session['user'])
+    smart_contract_name, error = blockchain_manager.deploy_smart_contract_new_event(name_event, date_event, seats_event, session['user'])
+
+    if smart_contract_name is not None and error == 'No error':
+        return render_template('event_creation.html', error='The event ' + smart_contract_name + ' add correctly.')
+    else:
+        return render_template('event_creation.html', error=error)
 
 
 if __name__ == "__main__":
