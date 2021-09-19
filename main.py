@@ -1,4 +1,5 @@
 import configparser
+import datetime
 from datetime import timedelta
 from hashlib import sha256
 
@@ -128,11 +129,22 @@ def event_create():
         return redirect("https://www.youtube.com/watch?v=RvY5ploo1OI&ab_channel=beZ98", code=302)
 
     name_event = str(escape(request.form['input_name']))
-    date_event = str(escape(request.form['input_date']))
-    seats_event = int(escape(request.form['input_available_seats']))
+    date_event_str = str(escape(request.form['input_date']))
+    seats_event = escape(request.form['input_available_seats'])
 
-    smart_contract_name, error = blockchain_manager.deploy_smart_contract_new_event(name_event, date_event, seats_event, session['user'])
+    # Control on input data
+    date_event_datetime = datetime.datetime.strptime(date_event_str, '%Y-%m-%d').date()
+    if date_event_datetime < datetime.date.today():
+        return render_template('event_creation.html', error='Select a future date.')
+    try:
+        seats_event = int(seats_event)
+    except Exception as e:
+        return render_template('event_creation.html', error='Available seats must be an integer value.')
 
+    # Deployment of the event's smart contract
+    smart_contract_name, error = blockchain_manager.deploy_smart_contract_new_event(name_event, date_event_str, seats_event, session['user'])
+
+    # Check the output of deploy_smart_contract_new_event()
     if smart_contract_name is not None and error == 'No error':
         return render_template('event_creation.html', error='The event ' + smart_contract_name + ' add correctly.')
     else:

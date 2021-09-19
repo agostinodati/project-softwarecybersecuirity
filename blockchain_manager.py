@@ -5,7 +5,6 @@ from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
 import configparser
-import traceback as tb
 
 sc_new_event = './smart_contracts/New_event.sol'
 sc_storage = './smart_contracts/Storage.sol'
