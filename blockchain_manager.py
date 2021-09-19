@@ -5,6 +5,8 @@ from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
 import configparser
+import csv
+from os.path import isfile
 
 sc_new_event = './smart_contracts/New_event.sol'
 sc_storage = './smart_contracts/Storage.sol'
@@ -12,30 +14,46 @@ smart_contract_local_path = './smart_contracts/address_list.txt'
 smart_contracts_dict = {}
 
 
-def store_smart_contract_address(name_contract, address_contract, path):
-    '''
+def get_smart_contracts_dict():
+    """
+    Get the dictionary (name: address) of the smart contracts deployed on the blockchain.
+    :return: Dictionary (name: address) of the smart contracts deployed on the blockchain
+    """
+    return smart_contracts_dict.copy()
+
+
+def store_smart_contract_address(name_contract, address_contract):
+    """
     This function will store the contract name and the address in a dictionary and in a file in the local system.
     :param name_contract: Contract's name
     :param address_contract: Contract's address
-    :param path: Path where save the dict
+    :param path: Path where to save the dict
     :return: Nothing
-    '''
+    """
     smart_contracts_dict.update({name_contract: address_contract})
-    with open(path, 'a') as f:
+    if not isfile(smart_contracts_dict):
+        with open(smart_contracts_dict, 'w') as f:
+            f.write('contract name;contract address')
+    with open(smart_contract_local_path, 'a') as f:
+        f.write(name_contract + ';' + address_contract)
         f.write('\n')
-        f.write(name_contract)
-        f.write(address_contract)
+
+
+def get_smart_contract_file_dict():
+    with open(smart_contract_local_path, 'r') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        # TODO: Need to complete
 
 
 def deploy_smart_contract_new_event(name_event, date_event, available_seats_event, username):
-    '''
+    """
     This function create the smart contract of a new event added by the event manager.
     :param name_event: Name of the event
     :param date_event: Date when the event take place
     :param available_seats_event: Available seats of the event
     :param username: Name of the user that add the event
     :return: Name of the smart contract and an error string
-    '''
+    """
     error = 'No error'
 
     install_solc('0.7.0')  # Install the compiler of Solidity
@@ -89,7 +107,8 @@ def deploy_smart_contract_new_event(name_event, date_event, available_seats_even
 
         try:
             print('Sending the transaction...')
-            tx_hash = new_event_contract.constructor(name_event, date_event, available_seats_event).transact(transaction)
+            tx_hash = new_event_contract.constructor(name_event, date_event, available_seats_event).transact(
+                transaction)
 
             # Wait for the transaction to be mined, and get the transaction receipt
             tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
@@ -107,7 +126,7 @@ def deploy_smart_contract_new_event(name_event, date_event, available_seats_even
             error = e
             return None, error
 
-        store_smart_contract_address(name_event_smart_contract, address_event_smart_contract, smart_contract_local_path)
+        store_smart_contract_address(name_event_smart_contract, address_event_smart_contract)
 
         print(smart_contracts_dict)
 
