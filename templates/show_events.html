@@ -8,14 +8,23 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1 class="text-muted">Welcome to the Reseller's page!</h1>
+      <h1 class="text-muted">All events</h1>
     </div>
   </div>
-  <div class="container">
-    <h2></h2><a href="show_events">Show events to buy seats.</a></h2>
-  </div>
+   <div class="container">
+       <p class="lead" style="color:red;font-weight: bold;">{{error}}</p>
+        {% for event_name in event_names %}
+        <li>
+            <img src="{{image}}" alt="" uk-cover>
+            <h2></h2><a href="single_event_seats/{{event_name}}">{{event_name}}</a></h2>
+        </li>
+        {% endfor %}
+    </div>
   <footer class="footer">
     <p>Progetto Software Cybersecurity</p>
   </footer>
+</body>
+<body>
+
 </body>
 </html>

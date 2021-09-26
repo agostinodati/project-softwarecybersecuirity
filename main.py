@@ -142,7 +142,8 @@ def event_create():
         return render_template('event_creation.html', error='Available seats must be an integer value.')
 
     # Deployment of the event's smart contract
-    smart_contract_name, error = blockchain_manager.deploy_smart_contract_new_event(name_event, date_event_str, seats_event, session['user'])
+    smart_contract_name, error = blockchain_manager.deploy_smart_contract_new_event(name_event, date_event_str,
+                                                                                    seats_event, session['user'])
 
     # Check the output of deploy_smart_contract_new_event()
     if smart_contract_name is not None and error == 'No error':
@@ -151,10 +152,48 @@ def event_create():
         return render_template('event_creation.html', error=error)
 
 
+# Show all events for reseller
+@app.route("/show_events")
+def show_events():
+    if session.get('role') != 'reseller' or session.get('logged_in') is False:
+        return redirect("https://www.youtube.com/watch?v=RvY5ploo1OI&ab_channel=beZ98", code=302)
+    list_event_names = []
+
+    # Extract name of events on the block chain from the dictionary created or read it from the local file.
+    try:
+        event_dict = blockchain_manager.get_smart_contracts_dict()
+        if not event_dict:
+            event_dict = blockchain_manager.get_smart_contracts_dict()
+            event_dict = event_dict.keys()
+        for key in event_dict:
+            list_event_names.append(key)
+    except Exception as e:
+        return render_template('show_events.html', error='Something went wrong.')
+
+    return render_template('show_events.html', event_names=list_event_names)
+
+
+# Show the information page of the single event
+@app.route("/single_event_seats")
+@app.route("/single_event_seats/<event_name>")
+def single_event_seats(event_name):
+    """
+    Show the information about the event indicated and, eventually, allow to buy seats.
+    :param event_name: Event's name
+    :return:
+    """
+    if session.get('role') != 'reseller' or session.get('logged_in') is False:
+        return render_template("login.html", error='Please, log in.')
+    date, available_seats = blockchain_manager.get_event_information(session['user'], event_name)
+    # TODO: Controllo su data e posti disponibili.
+    return render_template('single_event_seats.html', event_name=event_name, event_date=date,
+                           event_seats=available_seats)
+
+
 if __name__ == "__main__":
     app.config['ENV'] = 'development'
     app.config['DEBUG'] = True
     app.config['TESTING'] = True
     app.secret_key = 'secret password'  # It should be modified, used to decode the session
-    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=5)  # Session's timeout
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)  # Session's timeout
     app.run()
