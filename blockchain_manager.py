@@ -158,8 +158,7 @@ def get_event_information(username, name_event):
     try:
         w3 = Web3(Web3.HTTPProvider(config[username]["address_node"]))
     except Exception as e:
-        error = e
-        return None, error
+        return None, None, e
 
     w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
@@ -174,6 +173,55 @@ def get_event_information(username, name_event):
             date_event = name_event_smart_contract = event.functions.get_date().call()
             available_seats_event = name_event_smart_contract = event.functions.get_available_seats().call()
         except Exception as e:
+            return None, None, e
+
+        return date_event, available_seats_event, None
+
+
+def purchase_seats(username, name_event, seats_purchase):
+    """
+    Make a transaction to purchase event's seats from the reseller's side.
+    :param username: Name of the reseller user
+    :param name_event: Event's name
+    :param seats_purchase: Number of seats to purchase
+    :return: None if there aren't error or a string error.
+    """
+    config = configparser.ConfigParser()  # Use to access to the config file
+    config.read('config.ini')
+
+    try:
+        w3 = Web3(Web3.HTTPProvider(config[username]["address_node"]))
+    except Exception as e:
+        error = e
+        return None, error
+
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+    if w3.isConnected():
+        print("Connected to the blockchain.")
+        w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
+
+        address_event, abi_event = get_address_abi(name_event)
+        event = w3.eth.contract(address=address_event, abi=abi_event)
+
+        # Submit the transaction that deploys the contract
+        first_account = w3.eth.accounts[0]
+        nonce = w3.eth.getTransactionCount(Web3.toChecksumAddress(first_account))
+        transaction = {
+            'from': first_account,
+            'nonce': nonce,
+            'gas': 2000000,
+            'gasPrice': 0
+        }
+
+        try:
+            # Send the transaction.
+            # tx_hash = event.functions.purchase_seats(seats_purchase).buildTransaction(transaction)
+            # signed_tx = w3.eth.account.send_transaction(tx_hash)
+            tx_hash = event.functions.purchase_seats(seats_purchase).transact(transaction)
+            # Wait for the transaction to be mined, and get the transaction receipt
+            tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+        except Exception as e:
             return e
 
-        return date_event, available_seats_event
+        return None

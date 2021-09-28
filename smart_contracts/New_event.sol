@@ -5,6 +5,7 @@ contract new_event{
   string private name;
   string private date;
   int256 private available_seats;
+  int256 private initial_available_seats;
   mapping(address => int256) private reseller_seats_list;
   mapping(address => int256) private buyer_ticket_list;
 
@@ -12,7 +13,7 @@ contract new_event{
                        name = x;
                        date = y;
                        available_seats = z;
-
+                       initial_available_seats = z;
   }
 
   function set_name(string memory x) public {
@@ -23,13 +24,9 @@ contract new_event{
     date = x;
   }
 
-  //function add_reseller_seats_to_list() public {
-  //  reseller_seats_list[msg.sender] = int256(msg.value);
-  //}
-
-  //function get_reseller_seats(address reseller) view public returns (address){
-  //  return reseller_seats_list[address];
-  //}
+  function get_reseller_seats(address reseller) view public returns (int256){
+   return reseller_seats_list[reseller];
+  }
 
   function get_name() view public returns (string memory ){
     return name;
@@ -48,9 +45,10 @@ contract new_event{
     available_seats = num;
   }
 
-  function buy_seats(int256 seats_bought) public {
+  function purchase_seats(int256 seats_bought) public {
     int256 remainder = get_available_seats() - seats_bought;
-    require(remainder >= 0);
+    require(remainder > 0);
+    reseller_seats_list[msg.sender] = int256(seats_bought);
     set_available_seats(remainder);
   }
 }

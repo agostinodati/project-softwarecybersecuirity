@@ -11,7 +11,8 @@
     <p class="lead" style="color:red;font-weight: bold;">{{error}}</p>
     <h2 >Event date: {{event_date}} </h2>
     <h2 >Available seats: {{event_seats}} </h2>
-    <form class="form-event" action="/event_buy_seats" method="post">
+    <form class="form-event" action="/purchase_seats_event/{{event_name}}" method="post">
+        <input type="hidden" name="event_name" value={{event_name}}>
         <label for="input_seats" class="form-control">Seats to buy: </label>
         <input autocomplete="off" class="form-control" step="0" name="input_seats" id="input_seats" placeholder="Seats" type="number">
         <button id="btnSignIn" class="btn btn-lg btn-success" type="submit">Buy event's seats</button>

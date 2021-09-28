@@ -178,16 +178,50 @@ def show_events():
 @app.route("/single_event_seats/<event_name>")
 def single_event_seats(event_name):
     """
-    Show the information about the event indicated and, eventually, allow to buy seats.
+    Show the information about the event indicated and, eventually, allow to purchase seats.
     :param event_name: Event's name
     :return:
     """
     if session.get('role') != 'reseller' or session.get('logged_in') is False:
         return render_template("login.html", error='Please, log in.')
-    date, available_seats = blockchain_manager.get_event_information(session['user'], event_name)
-    # TODO: Controllo su data e posti disponibili.
+    date, available_seats, e = blockchain_manager.get_event_information(session['user'], event_name)
+    # TODO: Controllo su data (se passata, rendere l'evento non acquistabile) e posti disponibili (se esauriti,
+    #  rendere l'evento non acquistabile.
     return render_template('single_event_seats.html', event_name=event_name, event_date=date,
                            event_seats=available_seats)
+
+
+@app.route("/purchase_seats_event/<event_name>", methods=['POST'])
+def purchase_seats_event(event_name):
+    if session.get('role') != 'reseller' or session.get('logged_in') is False:
+        return render_template("login.html", error='Please, log in.')
+
+    date, available_seats, e = blockchain_manager.get_event_information(session['user'], event_name)
+    seats_purchase = int(escape(request.form['input_seats']))
+
+    # Check if the number of the seats is an integer greater then 0.
+    if seats_purchase <= 0:
+        return render_template('single_event_seats.html', error='Insert an integer value greater then 0.', event_name=event_name,
+                               event_date=date, event_seats=available_seats)
+    diff = available_seats - seats_purchase
+
+    # Check if the difference between available seats and the value inserted by the reseller is a valid value.
+    if diff < 0:
+        return render_template('single_event_seats.html', error='Insufficient available seats.',
+                               event_name=event_name,
+                               event_date=date, event_seats=available_seats)
+
+    # Make the "purchase"
+    e_purchase = blockchain_manager.purchase_seats(session['user'], event_name, seats_purchase)
+
+    date, available_seats, e = blockchain_manager.get_event_information(session['user'], event_name)
+
+    if e_purchase is None:
+        return render_template('single_event_seats.html', error='Seats purchased successfully.', event_name=event_name,
+                               event_date=date, event_seats=available_seats)
+    else:
+        return render_template('single_event_seats.html', error=e_purchase, event_name=event_name,
+                               event_date=date, event_seats=available_seats)
 
 
 if __name__ == "__main__":
