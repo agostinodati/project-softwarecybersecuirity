@@ -216,10 +216,7 @@ def purchase_seats(username, name_event, seats_purchase):
 
         try:
             # Send the transaction.
-            # tx_hash = event.functions.purchase_seats(seats_purchase).buildTransaction(transaction)
-            # signed_tx = w3.eth.account.send_transaction(tx_hash)
             tx_hash = event.functions.purchase_seats(seats_purchase).transact(transaction)
-            # Wait for the transaction to be mined, and get the transaction receipt
             tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
         except Exception as e:
             return e

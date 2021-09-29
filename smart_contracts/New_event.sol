@@ -47,8 +47,15 @@ contract new_event{
 
   function purchase_seats(int256 seats_bought) public {
     int256 remainder = get_available_seats() - seats_bought;
-    require(remainder > 0);
-    reseller_seats_list[msg.sender] = int256(seats_bought);
+    require(remainder >= 0, "Insufficient available seats!");
+    // Check if the address exists... Prove the validity of this method!
+    if (reseller_seats_list[msg.sender] != int256(0x0)){
+      int256 actual_value = reseller_seats_list[msg.sender];
+      reseller_seats_list[msg.sender] = actual_value + int256(seats_bought);
+    }
+    else{
+      reseller_seats_list[msg.sender] = int256(seats_bought);
+    }
     set_available_seats(remainder);
   }
 }
