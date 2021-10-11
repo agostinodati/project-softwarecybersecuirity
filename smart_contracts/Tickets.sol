@@ -33,7 +33,7 @@ contract TicketOffice {
         remainingTickets = seatsPurchased;
     }
 
-    function createTicket(uint256 price, address memory buyer, string seal, string timestamp, ticketStates state) public returns(uint256) {
+    function createTicket(uint256 price, address memory buyer, string memory seal, string memory timestamp, ticketStates state) public returns(uint256) {
         if (getRemainingTickets() == 0) throw;
 
         Event eventPurchased = Event(eventAddress);

@@ -10,10 +10,10 @@ from os.path import isfile
 import json
 
 
-sc_new_event = './smart_contracts/New_event.sol'
-sc_ticketNFT = './smart_contracts/ticketNFT.sol'
+sc_new_event = './smart_contracts/Event.sol'
+sc_ticket = './smart_contracts/Tickets.sol'
 smart_contract_local = './smart_contracts/address_dict.npy'
-nft_smart_contract_local = './smart_contracts/nft_address_dict.npy'
+ticket_smart_contract_local = './smart_contracts/ticket_address_dict.npy'
 
 
 def get_smart_contracts_dict():
@@ -45,7 +45,7 @@ def store_smart_contract_address(name_contract, address_contract, abi, smart_con
     return read_dictionary
 
 
-def deploy_smart_contract_new_event(name_event, date_event, available_seats_event, username):
+def deploy_smart_contract_new_event(name_event, date_event, available_seats_event, ticket_price, username):
     """
     This function create the smart contract of a new event added by the event manager.
     :param name_event: Name of the event
@@ -107,7 +107,7 @@ def deploy_smart_contract_new_event(name_event, date_event, available_seats_even
 
         try:
             print('Sending the transaction...')
-            tx_hash = new_event_contract.constructor(name_event, date_event, available_seats_event).transact(
+            tx_hash = new_event_contract.constructor(name_event, date_event, available_seats_event, ticket_price).transact(
                 transaction)
 
             # Wait for the transaction to be mined, and get the transaction receipt
@@ -121,7 +121,7 @@ def deploy_smart_contract_new_event(name_event, date_event, available_seats_even
         event = w3.eth.contract(address=address_event_smart_contract, abi=abi)
 
         try:
-            name_event_smart_contract = event.functions.get_name().call()  # Get the name of the smart contract event
+            name_event_smart_contract = event.functions.getName().call()  # Get the name of the smart contract event
         except Exception as e:
             error = e
             return None, error
@@ -171,12 +171,13 @@ def get_event_information(username, name_event):
         event = w3.eth.contract(address=address_event, abi=abi_event)
 
         try:
-            date_event = name_event_smart_contract = event.functions.get_date().call()
-            available_seats_event = name_event_smart_contract = event.functions.get_available_seats().call()
+            date_event = name_event_smart_contract = event.functions.getDate().call()
+            available_seats_event = name_event_smart_contract = event.functions.getAvailableSeats().call()
+            ticket_price = name_event_smart_contract = event.functions.getAvailableSeats().call()
         except Exception as e:
-            return None, None, e
+            return None, None, None, e
 
-        return date_event, available_seats_event, None
+        return date_event, available_seats_event, ticket_price, None
 
 
 def purchase_seats(username, name_event, seats_purchase):
@@ -225,7 +226,7 @@ def purchase_seats(username, name_event, seats_purchase):
         return None
 
 
-def deploy_nft_gen():
+def deploy_ticket():
     username = "event_man"
     error = 'No error'
 
@@ -235,7 +236,7 @@ def deploy_nft_gen():
 
     # Compile the smart contract
     try:
-        source_code = open(sc_ticketNFT, 'r').read()
+        source_code = open(sc_ticket, 'r').read()
         compiled_sol = compile_source(source_code)
         print(compiled_sol)
     except Exception as e:
@@ -266,7 +267,7 @@ def deploy_nft_gen():
         print("Connected to the blockchain.")
         w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
 
-        nft_gen_contract = w3.eth.contract(abi=abi, bytecode=bytecode)
+        ticket_office = w3.eth.contract(abi=abi, bytecode=bytecode)
 
         # Submit the transaction that deploys the contract
         first_account = w3.eth.accounts[0]
@@ -280,7 +281,7 @@ def deploy_nft_gen():
 
         try:
             print('Sending the transaction...')
-            tx_hash = nft_gen_contract.constructor().transact(transaction)
+            tx_hash = ticket_office.constructor().transact(transaction)
 
             # Wait for the transaction to be mined, and get the transaction receipt
             tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
@@ -289,19 +290,12 @@ def deploy_nft_gen():
             error = e
             return None, error
 
-        address_nft_gen = tx_receipt.contractAddress
-        nft_gen = w3.eth.contract(address=address_nft_gen, abi=abi)
-
-        string_test = {
-            "name": "Thor's hammer",
-            "description": "Mjölnir, the legendary hammer of the Norse god of thunder.",
-            "image": "https://game.example/item-id-8u5h2m.png",
-            "strength": 20
-        }
-        string_test = json.dumps(string_test)
+        address_ticket_office = tx_receipt.contractAddress
+        ticket = w3.eth.contract(address=address_ticket_office, abi=abi)
 
         try:
-            result = nft_gen.functions.createTicketNFT(string_test).transact(transaction)
+            result = ticket.functions.create
+            result = ticket.functions.createTicketNFT().transact(transaction)
             print(str(result))
         except Exception as e:
             error = e
@@ -309,9 +303,10 @@ def deploy_nft_gen():
 
         abi_str = json.dumps(abi)
         name_smart_contract = "NFT generator"
-        nft_gen_smart_contracts_dict = store_smart_contract_address(name_smart_contract, address_nft_gen, abi_str,
-                                                                    nft_smart_contract_local)
+        ticket_smart_contracts_dict = store_smart_contract_address(name_smart_contract,
+                                                                   address_ticket_office, abi_str,
+                                                                   ticket_smart_contract_local)
 
-        print(nft_gen_smart_contracts_dict)
+        print(ticket_smart_contracts_dict)
 
-        return nft_gen_smart_contracts_dict, error
+        return ticket_smart_contracts_dict, error
