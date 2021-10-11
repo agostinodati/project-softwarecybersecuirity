@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <style>
+        button {
+          background-color: #04AA6D;
+          color: white;
+          padding: 14px;
+          margin: 8px;
+          border: none;
+          cursor: pointer;
+          font-family: Arial, Helvetica, sans-serif;
+          width: 20%;
+        }
+
+        button:hover {
+          opacity: 0.8;
+        }
+
+        #rcorners2 {
+          border-radius: 25px;
+          border: 5px solid #04AA6D;
+          padding: 20px;
+          width: 35%;
+          margin: auto;
+          margin-top: 5%;
+        }
+
+        h1 {
+          text-align: center;
+          font-family: Arial, Helvetica, sans-serif;
+        }
+
+        p {
+          text-align: center;
+        }
+
+        .container {
+           border-radius: 25px;
+           background-color: #eee;
+           padding: 10px;
+        }
+
+        input[type=name], input[type=password] {
+          width: 100%;
+          padding: 12px 20px;
+          margin: 8px 0;
+          display: inline-block;
+          border: 1px solid #ccc;
+          box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <div id="rcorners2">
+        <h1>Insert your data</h1>
+        <div class="container">
+            <p class="lead" style="color:red;font-weight: bold;text-align: center;">{{error}}</p>
+            <form class="form-signin" action="/validate_login" method="post">
+                <label for="input_username" class="sr-only"><b>Username</b></label>
+                <input type="name" name="input_username" id="input_username" class="form-control" placeholder="Username" required autofocus>
+                <label for="input_password" class="sr-only"><b>Password</b></label>
+                <input type="password" name="input_password" id="input_password" class="form-control" placeholder="Password" required>
+                <p align="center">
+                    <button id="btnSignIn" type="submit">Login</button>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+<footer class="footer">
+    <p>Progetto Software Cybersecurity</p>
+  </footer>
+</body>
+</html>
