@@ -31,15 +31,15 @@ contract Event {
   }
 
 
-  function setAvailableState() public returns () {
+  function setAvailableState() public {
     state = eventStates.available;
   }
 
-  function setCancelledState() public returns () {
+  function setCancelledState() public {
     state = eventStates.cancelled;
   }
 
-  function setExpiredState() public returns () {
+  function setExpiredState() public {
     state = eventStates.expired;
   }
 
@@ -48,11 +48,11 @@ contract Event {
   }
 
 
-  function setArtist(string memory artistName) public returns () {
+  function setArtist(string memory artistName) public {
     artist = artistName;
   }
 
-  function getArtist() view public returns () {
+  function getArtist() view public returns (string) {
     return artist;
   }
 
