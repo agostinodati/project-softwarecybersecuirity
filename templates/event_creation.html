@@ -1,23 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link href= "{{url_for('static',filename='bootstrap.min.css')}}" type="text/css" rel="stylesheet">
-  <link href= "{{url_for('static',filename='jumbotron-narrow.css')}}" type="text/css" rel="stylesheet">
-  <link href= "{{url_for('static',filename='signup.css')}}" type="text/css" rel="stylesheet">
+  <style>
+        body {
+          font-family: Arial, Helvetica, sans-serif;
+          }
+
+        #rcorners2 {
+          border-radius: 25px;
+          border: 5px solid #04AA6D;
+          padding: 20px;
+          width: 35%;
+          margin: auto;
+          margin-top: 5%;
+        }
+
+        h1 {
+          text-align: center;
+        }
+
+        p {
+          text-align: center;
+        }
+
+        button {
+          background-color: #04AA6D;
+          color: white;
+          padding: 15px;
+          margin: 15px;
+          border: none;
+          cursor: pointer;
+          width: 45%;
+        }
+
+        button:hover {
+          opacity: 0.8;
+        }
+
+        .backbtn {
+            background-color: #f44336;
+            width: 20%;
+        }
+
+        input[type=name], input[type=date], [type=value] {
+          width: 100%;
+          padding: 12px 20px;
+          margin: 8px 0;
+          display: inline-block;
+          border: 1px solid #ccc;
+          box-sizing: border-box;
+        }
+
+        .container {
+           border-radius: 25px;
+           background-color: #eee;
+           padding: 10px;
+        }
+    </style>
 </head>
 <body>
 <div>
-    <h1>Insert event's informations</h1>
-    <p class="lead" style="color:red;font-weight: bold;">{{error}}</p>
-    <form class="form-signin" action="/event_create" method="post">
-        <label for="input_name" class="sr-only">Name</label>
-        <input type="name" name="input_name" id="input_name" class="form-control" placeholder="Name" required autofocus>
-        <label for="input_date" class="sr-only">Date</label>
-        <input type="date" name="input_date" id="input_date" class="form-control" placeholder="Date" required>
-        <label for="input_available_seats" class="sr-only">Available seats</label>
-        <input type="value" name="input_available_seats" id="input_available_seats" class="form-control" placeholder="Available seats" required>
-        <button id="btnSignIn" class="btn btn-lg btn-success" type="submit">Add event</button>
-    </form>
+    <div id="rcorners2">
+        <h1>Insert event's informations</h1>
+        <div class="container">
+            <p class="lead" style="color:red;font-weight: bold;">{{error}}</p>
+            <form class="form-signin" action="/event_create" method="post">
+                <label for="input_name"><b>Name</b></label>
+                <input type="name" name="input_name" id="input_name" class="form-control" placeholder="Name" required autofocus>
+
+                <label for="input_date"><b>Date</b></label>
+                <input type="date" name="input_date" id="input_date" class="form-control" placeholder="Date" required>
+
+                <label for="input_available_seats"><b>Available seats</b></label>
+                <input type="value" name="input_available_seats" id="input_available_seats" class="form-control" placeholder="Available seats" required>
+
+                <label for="input_ticket_price"><b>Ticket price</b></label>
+                <input type="value" name="input_ticket_price" id="input_ticket_price" class="form-control" placeholder="Ticket price" required>
+                <p align="center">
+                    <button id="btnSignIn" type="submit">Add event</button>
+                    <a href="/back"><button class="backbtn" type="button">Back</button></a>
+                </p>
+            </form>
+        </div>
+    </div>
 </div>
+<footer class="footer">
+    <p>Progetto Software Cybersecurity</p>
+  </footer>
 </body>
 </html>

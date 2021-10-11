@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/html">
+<html lang="en">
 <head>
-  <style>
+    <style>
         button {
           background-color: #04AA6D;
           color: white;
@@ -10,20 +10,16 @@
           border: none;
           cursor: pointer;
           font-family: Arial, Helvetica, sans-serif;
-        }
-
-        .btn {
-         width: 80%;
-        }
-
-        .logoutbtn {
-          width: 15%;
-          padding: 10px 18px;
-          background-color: #f44336;
+          width: 60%;
         }
 
         button:hover {
           opacity: 0.8;
+        }
+
+        .backbtn {
+            background-color: #f44336;
+            width: 20%;
         }
 
         #rcorners2 {
@@ -44,17 +40,23 @@
           text-align: center;
         }
 
-        .Menu {
-          width: 100%;
-          text-align: center;
+        .container {
+           border-radius: 25px;
+           background-color: #eee;
+           padding: 10px;
+        }
+
+        .list {
+          width: 80%;
           margin: auto;
           font-family: Arial, Helvetica, sans-serif;
           font-size: 15px;
+          text-align: center;
         }
 
-        .Menu a {
+        .list a {
           background-color: #FFFFFF;
-          border-radius: 5px;
+          border-radius: 10px;
           border: 2px solid #c0c0c0;
           color: black;
           display: block;
@@ -63,28 +65,27 @@
           margin: 5px;
         }
 
-        .Menu a:hover {
+        .list a:hover {
           border: 2px solid #000000;
           background-color: #04AA6D;
         }
 
-        .container {
-           border-radius: 25px;
-           background-color: #eee;
-           padding: 10px;
-        }
     </style>
-
 </head>
 <body>
   <div id="rcorners2">
-    <h1 class="text-muted">Welcome to the Event Manager's page!</h1>
-    <div class="container" align="center">
-        <a href="/event_creation"><button class="btn">Go to the Event's Creation page.</button></a>
-        <a href="/show_events_manager"><button class="btn">Go to the Event's List page.</button></a>
-      <p align="center">
-        <a href="/logout"><button type="button" class="logoutbtn">Log Out</button></a>
-      </p>
+      <h1 class="text-muted">All events Created</h1>
+   <div class="container">
+       <p class="lead" style="color:red;font-weight: bold;text-align: center;">{{error}}</p>
+        {% for event_name in event_names %}
+        <div align="center">
+            <img src="{{image}}" alt="" uk-cover>
+            <a href="/event_info_manager/{{event_name}}"><button>{{event_name}}</button></a>
+        </div>
+        {% endfor %}
+       <p align="center">
+           <a href="/back"><button class="backbtn" type="button">Back</button></a>
+       </p>
     </div>
   </div>
   <footer class="footer">

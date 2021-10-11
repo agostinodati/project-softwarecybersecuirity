@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <style>
+    <style>
         button {
           background-color: #04AA6D;
           color: white;
@@ -15,6 +15,10 @@
 
         button:hover {
           opacity: 0.8;
+        }
+
+        .backbtn {
+            background-color: #f44336;
         }
 
         #rcorners2 {
@@ -31,6 +35,14 @@
           font-family: Arial, Helvetica, sans-serif;
         }
 
+        h2 {
+           padding: 10px;
+           border-radius: 10px;
+           background-color: #FFFFFF;
+           font-size: 20px;
+           text-align: center;
+        }
+
         p {
           text-align: center;
         }
@@ -41,31 +53,21 @@
            padding: 10px;
         }
 
-        input[type=name], input[type=password] {
-          width: 100%;
-          padding: 12px 20px;
-          margin: 8px 0;
-          display: inline-block;
-          border: 1px solid #ccc;
-          box-sizing: border-box;
-        }
     </style>
 </head>
 <body>
 <div>
     <div id="rcorners2">
-        <h1>Insert your data</h1>
+        <h1>Event Informations</h1>
         <div class="container">
             <p class="lead" style="color:red;font-weight: bold;text-align: center;">{{error}}</p>
-            <form class="form-signin" action="/validate_login" method="post">
-                <label for="input_username" class="sr-only"><b>Username</b></label>
-                <input type="name" name="input_username" id="input_username" class="form-control" placeholder="Username" required autofocus>
-                <label for="input_password" class="sr-only"><b>Password</b></label>
-                <input type="password" name="input_password" id="input_password" class="form-control" placeholder="Password" required>
-                <p align="center">
-                    <button id="btnSignIn" type="submit">Login</button>
-                </p>
-            </form>
+            <label> <b>Event name:</b></label> <h2>{{event_name}} </h2>
+            <label><b>Event date:</b></label> <h2>{{event_date}} </h2>
+            <label><b>Available seats:</b></label> <h2>{{event_seats}} </h2>
+            <label><b>Ticket price:</b></label> <h2>{{ticket_price}} € </h2>
+            <p align="center">
+                <a href="/back"><button class="backbtn" type="button">Back</button></a>
+            </p>
         </div>
     </div>
 </div>
