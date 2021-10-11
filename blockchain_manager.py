@@ -173,7 +173,7 @@ def get_event_information(username, name_event):
         try:
             date_event = name_event_smart_contract = event.functions.getDate().call()
             available_seats_event = name_event_smart_contract = event.functions.getAvailableSeats().call()
-            ticket_price = name_event_smart_contract = event.functions.getAvailableSeats().call()
+            ticket_price = name_event_smart_contract = event.functions.getSeatsPrice().call()
         except Exception as e:
             return None, None, None, e
 
@@ -218,7 +218,7 @@ def purchase_seats(username, name_event, seats_purchase):
 
         try:
             # Send the transaction.
-            tx_hash = event.functions.purchase_seats(seats_purchase).transact(transaction)
+            tx_hash = event.functions.purchaseSeats(seats_purchase).transact(transaction)
             tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
         except Exception as e:
             return e

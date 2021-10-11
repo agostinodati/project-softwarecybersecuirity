@@ -43,7 +43,7 @@ contract Event {
     state = eventStates.expired;
   }
 
-  function getState() view public returns (evenStates) {
+  function getState() view public returns (eventStates) {
     return state;
   }
 
@@ -52,7 +52,7 @@ contract Event {
     artist = artistName;
   }
 
-  function getArtist() view public returns (string) {
+  function getArtist() view public returns (string memory) {
     return artist;
   }
 
@@ -86,17 +86,17 @@ contract Event {
   }
 
 
-  function getReseller_seats(address memory reseller) view public returns (uint256){
+  function getReseller_seats(address reseller) view public returns (uint256){
    return resellerSeatsList[reseller];
   }
 
 
   function purchaseSeats(uint256 seatsPurchased) public {
-    int256 remainder = get_availableSeats() - seatsPurchased;
+    uint256 remainder = getAvailableSeats() - seatsPurchased;
     require(remainder >= 0, "Insufficient available seats!");
 
     // Check if the address exists in the map... Prove the validity of this method!
-    if (resellerSeatsList[msg.sender] != int256(0x0)){
+    if (resellerSeatsList[msg.sender] != uint256(0x0)){
       uint256 actual_value = resellerSeatsList[msg.sender];
       resellerSeatsList[msg.sender] = actual_value + uint256(seatsPurchased);
     }

@@ -277,7 +277,7 @@ def purchase_seats_event(event_name):
     # Make the "purchase"
     e_purchase = blockchain_manager.purchase_seats(session['user'], event_name, seats_purchase)
 
-    date, available_seats, e = blockchain_manager.get_event_information(session['user'], event_name)
+    date, available_seats, ticket_price, e = blockchain_manager.get_event_information(session['user'], event_name)
 
     if e_purchase is None:
         return render_template('single_event_seats.html', error='Seats purchased successfully.', event_name=event_name,
