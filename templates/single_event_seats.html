@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        button {
+          background-color: #04AA6D;
+          color: white;
+          padding: 14px;
+          margin: 8px;
+          border: none;
+          cursor: pointer;
+          font-family: Arial, Helvetica, sans-serif;
+          width: 50%;
+        }
+
+        button:hover {
+          opacity: 0.8;
+        }
+
+        .backbtn {
+            background-color: #f44336;
+            width: 20%;
+        }
+
+        #rcorners2 {
+          border-radius: 25px;
+          border: 5px solid #04AA6D;
+          padding: 20px;
+          width: 35%;
+          margin: auto;
+          margin-top: 5%;
+        }
+
+        h1 {
+          text-align: center;
+          font-family: Arial, Helvetica, sans-serif;
+        }
+
+        h2 {
+           padding: 10px;
+           border-radius: 10px;
+           background-color: #FFFFFF;
+           font-size: 20px;
+           text-align: center;
+        }
+
+        p {
+          text-align: center;
+        }
+
+        .container {
+           border-radius: 25px;
+           background-color: #eee;
+           padding: 10px;
+        }
+
+        .list {
+          width: 80%;
+          margin: auto;
+          font-family: Arial, Helvetica, sans-serif;
+          font-size: 15px;
+          text-align: center;
+        }
+
+        .list a {
+          background-color: #FFFFFF;
+          border-radius: 10px;
+          border: 2px solid #c0c0c0;
+          color: black;
+          display: block;
+          padding: 12px;
+          text-decoration: none;
+          margin: 5px;
+        }
+
+        .list a:hover {
+          border: 2px solid #000000;
+          background-color: #04AA6D;
+        }
+
+        input[type=number] {
+          width: 100%;
+          padding: 12px 20px;
+          margin: 8px 0;
+          display: inline-block;
+          border: 1px solid #ccc;
+          box-sizing: border-box;
+        }
+
+    </style>
+</head>
+<body>
+<div id="rcorners2">
+    <h1>Informations about:</h1>
+    <div class="container">
+        <p class="lead" style="color:red;font-weight: bold;">{{error}}</p>
+        <label><b>Event name:</b></label><h2>{{event_name}}</h2>
+        <label><b>Event date:</b></label><h2>{{event_date}}</h2>
+        <label><b>Available seats:</b></label><h2>{{event_seats}}</h2>
+        <form class="form-event" action="/purchase_seats_event/{{event_name}}" method="post">
+            <input type="hidden" name="event_name" value={{event_name}}>
+            <label for="input_seats" class="form-control"><b>Seats to buy:</b></label>
+            <input autocomplete="off" class="form-control" step="0" name="input_seats" id="input_seats" placeholder="Seats" type="number">
+            <p>
+                <button id="btnSignIn" class="btn btn-lg btn-success" type="submit">Buy event's seats</button>
+                <a href="/back"><button class="backbtn" type="button">Back</button></a>
+            </p>
+        </form>
+    </div>
+</div>
+<footer class="footer">
+    <p>Progetto Software Cybersecurity</p>
+  </footer>
+</body>
+</html>
