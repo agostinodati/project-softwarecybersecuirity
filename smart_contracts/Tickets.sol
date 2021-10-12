@@ -25,15 +25,18 @@ contract TicketOffice {
 
     Ticket[] tickets;
 
-    constructor (address memory reseller, address memory eventAdr, uint256 seatsPurchased) public {
+    constructor (address memory reseller, address memory eventAdr) public {
+        Event eventPurchased = Event(eventAdr);
+
         ticketCounter = 0;
         resellerAddress = reseller;
         eventAddress = eventAdr;
-        totalTickets = seatsPurchased;
-        remainingTickets = seatsPurchased;
+        totalTickets = eventPurchased.getAvailableSeats();
+        remainingTickets = eventPurchased.getAvailableSeats();
     }
 
-    function createTicket(uint256 price, address memory buyer, string memory seal, string memory timestamp, ticketStates state) public returns(uint256) {
+    function createTicket(address memory buyer, uint256 price, string memory seal,
+        string memory timestamp) public returns(uint256) {
         if (getRemainingTickets() == 0) throw;
 
         Event eventPurchased = Event(eventAddress);
@@ -47,7 +50,7 @@ contract TicketOffice {
             buyerAddress: buyer,
             ticketSeal: seal,
             ticketTimestamp: timestamp,
-            ticketState: state
+            ticketState: ticketStates.valid
         });
         tickets.push(new_ticket);
         ticketCounter = ticketCounter + 1;
