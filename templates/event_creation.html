@@ -42,7 +42,17 @@
             width: 20%;
         }
 
-        input[type=name], input[type=date], [type=value] {
+        input[type=name], input[type=date], [type=value], [type=time] {
+          width: 100%;
+          padding: 12px 20px;
+          margin: 8px 0;
+          display: inline-block;
+          border: 1px solid #ccc;
+          box-sizing: border-box;
+        }
+
+        textarea {
+          resize: none;
           width: 100%;
           padding: 12px 20px;
           margin: 8px 0;
@@ -56,6 +66,7 @@
            background-color: #eee;
            padding: 10px;
         }
+
     </style>
 </head>
 <body>
@@ -68,14 +79,27 @@
                 <label for="input_name"><b>Name</b></label>
                 <input type="name" name="input_name" id="input_name" class="form-control" placeholder="Name" required autofocus>
 
+                <label for="input_artist"><b>Artist</b></label>
+                <input type="name" name="input_artist" id="input_artist" class="form-control" placeholder="Artist" required autofocus>
+
+                <label for="input_location"><b>Location</b></label>
+                <input type="name" name="input_location" id="input_location" class="form-control" placeholder="Location" required autofocus>
+
                 <label for="input_date"><b>Date</b></label>
-                <input type="date" name="input_date" id="input_date" class="form-control" placeholder="Date" required>
+                <input type="date" name="input_date" id="input_date" class="form-control" placeholder="Date" required autofocus>
+
+                <label for="input_hours"><b>Hours</b></label>
+                <input type="time" name="input_hours" id="input_hours" class="form-control" required autofocus>
 
                 <label for="input_available_seats"><b>Available seats</b></label>
-                <input type="value" name="input_available_seats" id="input_available_seats" class="form-control" placeholder="Available seats" required>
+                <input type="value" name="input_available_seats" id="input_available_seats" class="form-control" placeholder="Available seats" required autofocus>
 
                 <label for="input_ticket_price"><b>Ticket price</b></label>
-                <input type="value" name="input_ticket_price" id="input_ticket_price" class="form-control" placeholder="Ticket price" required>
+                <input type="value" name="input_ticket_price" id="input_ticket_price" class="form-control" placeholder="Ticket price" required autofocus>
+
+                <label for="input_description"><b>Description</b></label>
+                <textarea name="input_description" id="input_description" class="form-control" rows="6" placeholder="Description" required autofocus></textarea>
+
                 <p align="center">
                     <button id="btnSignIn" type="submit">Add event</button>
                     <a href="/back"><button class="backbtn" type="button">Back</button></a>

@@ -2,25 +2,54 @@ pragma solidity >0.5.0;
 
 contract Event {
   enum eventStates {available, cancelled, expired}
-
+  eventStates state;
   string private name;
   string private date;
-  eventStates state;
-  uint256 private seatsPrice;
+
   string private artist;
+  string private location;
+  string private description;
+
+  uint256 private seatsPrice;
   uint256 private availableSeats; // Actual available seats
   uint256 private initialAvailableSeats; // Store the initial amount of available seats
   mapping(address => uint256) private resellerSeatsList; // Store the address of the reseller and number of seats purchased
 
-
-  constructor(string memory eventName, string memory eventDate, uint256 eventSeatsPrice, uint256 seats) public {
+  constructor(string memory eventName, string memory eventDate, uint256 eventSeatsPrice, uint256 seats, string memory eventArtist, string memory eventLocation, string memory eventDescription) public {
     setName(eventName);
     setDate(eventDate);
-    setSeatsPrice(seats);
-    setAvailableSeats(eventSeatsPrice);
+    setArtist(eventArtist);
+    setLocation(eventLocation);
+    setDescription(eventDescription);
+
+    setSeatsPrice(eventSeatsPrice);
+    setAvailableSeats(seats);
     setAvailableState;
   }
 
+  function setArtist(string memory eventArtist) public {
+    artist = eventArtist;
+  }
+
+  function getArtist() view public returns (string memory ) {
+    return artist;
+  }
+
+  function setLocation(string memory eventLocation) public {
+    location = eventLocation;
+  }
+
+  function getLocation() view public returns (string memory ) {
+    return location;
+  }
+
+  function setDescription(string memory eventDescription) public {
+    description = eventDescription;
+  }
+
+  function getDescription() view public returns (string memory ) {
+    return description;
+  }
 
   function setName(string memory eventName) public {
     name = eventName;
@@ -30,6 +59,31 @@ contract Event {
     return name;
   }
 
+  function setDate(string memory eventDate) public {
+    date = eventDate;
+  }
+
+  function getDate() view public returns (string memory){
+    return date;
+  }
+
+  function setSeatsPrice(uint256 eventSeatsPrice) public{
+    seatsPrice = eventSeatsPrice;
+  }
+
+  function getSeatsPrice() view public returns (uint256) {
+    return seatsPrice;
+  }
+
+  function setAvailableSeats(uint256 seats) public {
+    require(seats >= 0, "Insufficient available seats!");
+    availableSeats = seats;
+    initialAvailableSeats = seats;
+  }
+
+  function getAvailableSeats() view public returns (uint256){
+    return availableSeats;
+  }
 
   function setAvailableState() public {
     state = eventStates.available;
@@ -47,49 +101,9 @@ contract Event {
     return state;
   }
 
-
-  function setArtist(string memory artistName) public {
-    artist = artistName;
-  }
-
-  function getArtist() view public returns (string memory) {
-    return artist;
-  }
-
-
-  function setDate(string memory eventDate) public {
-    date = eventDate;
-  }
-
-  function getDate() view public returns (string memory){
-    return date;
-  }
-
-
-  function setSeatsPrice(uint256 eventSeatsPrice) public{
-    seatsPrice = eventSeatsPrice;
-  }
-
-  function getSeatsPrice() view public returns (uint256) {
-    return seatsPrice;
-  }
-
-
-  function setAvailableSeats(uint256 seats) public {
-    require(seats >= 0, "Insufficient available seats!");
-    availableSeats = seats;
-    initialAvailableSeats = seats;
-  }
-
-  function getAvailableSeats() view public returns (uint256){
-    return availableSeats;
-  }
-
-
   function getReseller_seats(address reseller) view public returns (uint256){
    return resellerSeatsList[reseller];
   }
-
 
   function purchaseSeats(uint256 seatsPurchased) public {
     uint256 remainder = getAvailableSeats() - seatsPurchased;

@@ -45,12 +45,16 @@ def store_smart_contract_address(name_contract, address_contract, abi, smart_con
     return read_dictionary
 
 
-def deploy_smart_contract_new_event(name_event, date_event, available_seats_event, ticket_price, username):
+def deploy_smart_contract_new_event(name_event, date_event, available_seats_event, ticket_price, artist_event, location_event, description_event, username):
     """
     This function create the smart contract of a new event added by the event manager.
     :param name_event: Name of the event
     :param date_event: Date when the event take place
     :param available_seats_event: Available seats of the event
+    :param ticket_price: Price of the ticket
+    :param artist_event: Name of the artist for the event
+    :param location_event: Location of the event
+    :param description_event: description of the event
     :param username: Name of the user that add the event
     :return: Name of the smart contract and an error string
     """
@@ -64,7 +68,7 @@ def deploy_smart_contract_new_event(name_event, date_event, available_seats_even
     try:
         source_code = open(sc_new_event, 'r').read()
         compiled_sol = compile_source(source_code)
-        print(compiled_sol)
+        #print(compiled_sol)
     except Exception as e:
         error = e
         return None, error
@@ -107,7 +111,7 @@ def deploy_smart_contract_new_event(name_event, date_event, available_seats_even
 
         try:
             print('Sending the transaction...')
-            tx_hash = new_event_contract.constructor(name_event, date_event, available_seats_event, ticket_price).transact(
+            tx_hash = new_event_contract.constructor(name_event, date_event, available_seats_event, ticket_price, artist_event, location_event, description_event).transact(
                 transaction)
 
             # Wait for the transaction to be mined, and get the transaction receipt
@@ -130,7 +134,7 @@ def deploy_smart_contract_new_event(name_event, date_event, available_seats_even
         smart_contracts_dict = store_smart_contract_address(name_event_smart_contract,
                                                             address_event_smart_contract, abi_str)
 
-        print(smart_contracts_dict)
+        #print(smart_contracts_dict)
 
         return name_event_smart_contract, error
 
@@ -174,10 +178,14 @@ def get_event_information(username, name_event):
             date_event = name_event_smart_contract = event.functions.getDate().call()
             available_seats_event = name_event_smart_contract = event.functions.getAvailableSeats().call()
             ticket_price = name_event_smart_contract = event.functions.getSeatsPrice().call()
-        except Exception as e:
-            return None, None, None, e
 
-        return date_event, available_seats_event, ticket_price, None
+            artist_event = name_event_smart_contract = event.functions.getArtist().call()
+            location_event = name_event_smart_contract = event.functions.getLocation().call()
+            description_event = name_event_smart_contract = event.functions.getDescription().call()
+        except Exception as e:
+            return None, None, None, None, None, None, e
+
+        return date_event, available_seats_event, ticket_price, artist_event, location_event, description_event, None
 
 
 def purchase_seats(username, name_event, seats_purchase):

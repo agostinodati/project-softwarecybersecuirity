@@ -120,16 +120,18 @@ def logout():
 
 @app.route("/back")
 def back():
-    if session['logged_in'] == False:
-        return redirect('/login.html')
-    elif session['role'] == 'event_manager':
-        return redirect('/event_manager')
-    elif session['role'] == 'reseller':
-        return redirect('/reseller')
-    elif session['role'] == 'validator':
-        return redirect('/validator')
-    elif session['role'] == 'buyer':
-        return redirect('/buyer')
+    try:
+        if session['role'] == 'event_manager':
+            return redirect('/event_manager')
+        elif session['role'] == 'reseller':
+            return redirect('/reseller')
+        elif session['role'] == 'validator':
+            return redirect('/validator')
+        elif session['role'] == 'buyer':
+            return redirect('/buyer')
+    except:
+        return redirect('/login')
+
 
 # Event Creation page
 @app.route("/event_creation")
@@ -146,8 +148,13 @@ def event_create():
 
     name_event = str(escape(request.form['input_name']))
     date_event_str = str(escape(request.form['input_date']))
-    seats_event = escape(request.form['input_available_seats'])
+    hour_event_str = str(escape(request.form['input_hours']))
 
+    artist_event = str(escape(request.form['input_artist']))
+    location_event = str(escape(request.form['input_location']))
+    description_event = str(escape(request.form['input_description']))
+
+    seats_event = escape(request.form['input_available_seats'])
     ticket_price = escape(request.form['input_ticket_price'])
 
     # Control on input data
@@ -163,9 +170,11 @@ def event_create():
     except Exception as e:
         return render_template('event_creation.html', error='Ticket price must be an integer value.')
 
+    date_event_str = date_event_str + '+' + hour_event_str
+
     # Deployment of the event's smart contract
     smart_contract_name, error = blockchain_manager.deploy_smart_contract_new_event(name_event, date_event_str,
-                                                                                    seats_event, ticket_price, session['user'])
+                                                                                    seats_event, ticket_price, artist_event, location_event, description_event, session['user'])
 
     # Check the output of deploy_smart_contract_new_event()
     if smart_contract_name is not None and error == 'No error':
@@ -191,7 +200,9 @@ def show_events_manager():
         for key in event_dict:
             list_event_names.append(key)
     except Exception as e:
-        return render_template('show_events_manager.html', error='Something went wrong.')
+        if (len(list_event_names) == 0):
+            return render_template('show_events_manager.html', error='There are no events currently listed.')
+        return render_template('show_events_manager.html', error=e)
 
     return render_template('show_events_manager.html', event_names=list_event_names)
 
@@ -229,12 +240,19 @@ def event_info_manager(event_name):
     if session.get('role') != 'event_manager' or session.get('logged_in') is False:
         return render_template("login.html", error='Please, log in.')
 
-    date, available_seats, ticket_price, e = blockchain_manager.get_event_information(session['user'], event_name)
+    date, available_seats, ticket_price, artist, location, description, e = blockchain_manager.get_event_information(session['user'], event_name)
 
     # TODO: Controllo su data (se passata, rendere l'evento non acquistabile) e posti disponibili (se esauriti,
     #  rendere l'evento non acquistabile.
-    return render_template('event_info_manager.html', event_name=event_name, event_date=date,
-                           event_seats=available_seats, ticket_price=ticket_price)
+
+    try:
+        x = date.split("+")
+    except:
+        x = [None, None]
+
+    return render_template('event_info_manager.html', event_name=event_name, event_date=x[0], event_hours=x[1],
+                           event_seats=available_seats, ticket_price=ticket_price, event_artist=artist,
+                           event_location=location, event_description=description)
 
 # Show the information page of the single event
 @app.route("/single_event_seats")
@@ -247,11 +265,18 @@ def single_event_seats(event_name):
     """
     if session.get('role') != 'reseller' or session.get('logged_in') is False:
         return render_template("login.html", error='Please, log in.')
-    date, available_seats, ticket_price, e = blockchain_manager.get_event_information(session['user'], event_name)
+    date, available_seats, ticket_price, artist, location, description, e = blockchain_manager.get_event_information(session['user'], event_name)
     # TODO: Controllo su data (se passata, rendere l'evento non acquistabile) e posti disponibili (se esauriti,
     #  rendere l'evento non acquistabile.
-    return render_template('single_event_seats.html', event_name=event_name, event_date=date,
-                           event_seats=available_seats, ticket_price=ticket_price)
+
+    try:
+        x = date.split("+")
+    except:
+        x = [None, None]
+
+    return render_template('single_event_seats.html', event_name=event_name, event_date=x[0], event_hours=x[1],
+                           event_seats=available_seats, ticket_price=ticket_price, event_artist=artist,
+                           event_location=location, event_description=description)
 
 
 @app.route("/purchase_seats_event/<event_name>", methods=['POST'])
@@ -259,32 +284,46 @@ def purchase_seats_event(event_name):
     if session.get('role') != 'reseller' or session.get('logged_in') is False:
         return render_template("login.html", error='Please, log in.')
 
-    date, available_seats, ticket_price, e = blockchain_manager.get_event_information(session['user'], event_name)
+    date, available_seats, ticket_price, artist, location, description, e = blockchain_manager.get_event_information(session['user'], event_name)
     seats_purchase = int(escape(request.form['input_seats']))
 
     # Check if the number of the seats is an integer greater then 0.
+
+    try:
+        x = date.split("+")
+    except:
+        x = [None, None]
+
     if seats_purchase <= 0:
-        return render_template('single_event_seats.html', error='Insert an integer value greater then 0.', event_name=event_name,
-                               event_date=date, event_seats=available_seats, ticket_price=ticket_price)
+        return render_template('single_event_seats.html', error='Insert an integer value greater then 0.', event_name=event_name, event_date=x[0], event_hours=x[1],
+                               event_seats=available_seats, ticket_price=ticket_price, event_artist=artist,
+                               event_location=location, event_description=description)
     diff = available_seats - seats_purchase
 
     # Check if the difference between available seats and the value inserted by the reseller is a valid value.
     if diff < 0:
-        return render_template('single_event_seats.html', error='Insufficient available seats.',
-                               event_name=event_name,
-                               event_date=date, event_seats=available_seats,ticket_price=ticket_price)
+        return render_template('single_event_seats.html', error='Insufficient available seats.', event_name=event_name, event_date=x[0], event_hours=x[1],
+                               event_seats=available_seats, ticket_price=ticket_price, event_artist=artist,
+                               event_location=location, event_description=description)
 
     # Make the "purchase"
     e_purchase = blockchain_manager.purchase_seats(session['user'], event_name, seats_purchase)
 
-    date, available_seats, ticket_price, e = blockchain_manager.get_event_information(session['user'], event_name)
+    date, available_seats, ticket_price, artist, location, description, e = blockchain_manager.get_event_information(session['user'], event_name)
+
+    try:
+        x = date.split("+")
+    except:
+        x = [None, None]
 
     if e_purchase is None:
-        return render_template('single_event_seats.html', error='Seats purchased successfully.', event_name=event_name,
-                               event_date=date, event_seats=available_seats, ticket_price=ticket_price)
+        return render_template('single_event_seats.html', error='Seats purchased successfully.', event_name=event_name, event_date=x[0], event_hours=x[1],
+                               event_seats=available_seats, ticket_price=ticket_price, event_artist=artist,
+                               event_location=location, event_description=description)
     else:
-        return render_template('single_event_seats.html', error=e_purchase, event_name=event_name,
-                               event_date=date, event_seats=available_seats, ticket_price=ticket_price)
+        return render_template('single_event_seats.html', error=e_purchase, event_name=event_name, event_date=x[0], event_hours=x[1],
+                               event_seats=available_seats, ticket_price=ticket_price, event_artist=artist,
+                               event_location=location, event_description=description)
 
 
 if __name__ == "__main__":
