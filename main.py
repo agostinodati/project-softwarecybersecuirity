@@ -5,7 +5,7 @@ from hashlib import sha256
 
 import flask
 import mysql.connector
-from flask import request, session, redirect, render_template, escape
+from flask import request, session, redirect, render_template, escape, url_for
 
 import blockchain_manager
 
@@ -22,50 +22,75 @@ database = mysql.connector.connect(
     database=config['DB']['database']
 )
 
-
 # Homepage
 @app.route("/")
 def main():
     return render_template('index.html')
 
-
 # Login
 @app.route("/login")
 def login():
-    return render_template('login.html')
-
+    try:
+        messages = request.args['messages']
+    except:
+        messages = ""
+    return render_template('login.html', error= messages)
 
 # Event Manager's page
 @app.route("/event_manager")
 def event_manager():
-    if session.get('role') != 'event_manager' or session.get('logged_in') is False:
-        return redirect("http://127.0.0.1:5000/single_event_seats/Bho", code=302)
-    return render_template('event_manager.html')
-
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'event_manager':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
+    try:
+        messages = request.args['messages']
+    except:
+        messages = ""
+    return render_template('event_manager.html', error= messages)
 
 # Reseller's page
 @app.route("/reseller")
 def reseller():
-    if session.get('role') != 'reseller' or session.get('logged_in') is False:
-        return redirect("http://127.0.0.1:5000/single_event_seats/Bho", code=302)
-    return render_template('reseller.html')
-
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'reseller':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
+    try:
+        messages = request.args['messages']
+    except:
+        messages = ""
+    return render_template('reseller.html', error=messages)
 
 # Validator's page
 @app.route("/validator")
 def validator():
-    if session.get('role') != 'validator' or session.get('logged_in') is False:
-        return redirect("http://127.0.0.1:5000/single_event_seats/Bho", code=302)
-    return render_template('validator.html')
-
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'validator':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
+    try:
+        messages = request.args['messages']
+    except:
+        messages = ""
+    return render_template('validator.html', error=messages)
 
 # Buyer's page
 @app.route("/buyer")
 def buyer():
-    if session.get('role') != 'buyer' or session.get('logged_in') is False:
-        return redirect("http://127.0.0.1:5000/single_event_seats/Bho", code=302)
-    return render_template('buyer.html')
-
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'buyer':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
+    try:
+        messages = request.args['messages']
+    except:
+        messages = ""
+    return render_template('buyer.html', error=messages)
 
 # Validate the data of login
 @app.route("/validate_login", methods=['POST'])
@@ -98,53 +123,55 @@ def validate_login():
             session['password'] = result[1]
             session['role'] = result[2]
             if session['role'] == 'event_manager':
-                return redirect('/event_manager')
+                return redirect(url_for('event_manager'))
             elif session['role'] == 'reseller':
-                return redirect('/reseller')
+                return redirect(url_for('reseller'))
             elif session['role'] == 'validator':
-                return redirect('/validator')
+                return redirect(url_for('validator'))
             elif session['role'] == 'buyer':
-                return redirect('/buyer')
+                return redirect(url_for('buyer'))
         else:
             # If there are problems with the credentials, return an error in the login page.
-            return render_template('login.html', error='The credentials entered are incorrect. Try again.')
+            return redirect(url_for('login', messages='The credentials entered are incorrect. Try again.'))
     else:
         # If the user does not exists return an error.
         # This error is generic to avoid to give too much information to an attacker.
-        return render_template('login.html', error='The credentials entered are incorrect. Try again.')
+        return redirect(url_for('login', messages='The credentials entered are incorrect. Try again.'))
 
 @app.route("/logout")
 def logout():
     session['logged_in'] = False;
-    return render_template('/login.html')
+    return redirect(url_for("login", messages="Successfully logged out!"))
 
 @app.route("/back")
 def back():
     try:
         if session['role'] == 'event_manager':
-            return redirect('/event_manager')
+            return redirect(url_for('event_manager'))
         elif session['role'] == 'reseller':
-            return redirect('/reseller')
+            return redirect(url_for('reseller'))
         elif session['role'] == 'validator':
-            return redirect('/validator')
+            return redirect(url_for('validator'))
         elif session['role'] == 'buyer':
-            return redirect('/buyer')
+            return redirect(url_for('buyer'))
     except:
-        return redirect('/login')
-
+        return redirect(url_for('login', messages="Please log in."))
 
 # Event Creation page
 @app.route("/event_creation")
 def event_creation():
     if session.get('role') != 'event_manager' or session.get('logged_in') is False:
-        return redirect("http://127.0.0.1:5000/single_event_seats/Bho", code=302)
+        return redirect("login", code=302)
     return render_template('event_creation.html')
 
 # Create Event
-@app.route("/event_create", methods=['POST'])
+@app.route("/event_creation", methods=['POST'])
 def event_create():
-    if session.get('role') != 'event_manager' or session.get('logged_in') is False:
-        return redirect("http://127.0.0.1:5000/single_event_seats/Bho", code=302)
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'event_manager':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
 
     name_event = str(escape(request.form['input_name']))
     date_event_str = str(escape(request.form['input_date']))
@@ -173,8 +200,11 @@ def event_create():
     date_event_str = date_event_str + '+' + hour_event_str
 
     # Deployment of the event's smart contract
-    smart_contract_name, error = blockchain_manager.deploy_smart_contract_new_event(name_event, date_event_str,
+    try:
+        smart_contract_name, error = blockchain_manager.deploy_smart_contract_new_event(name_event, date_event_str,
                                                                                     seats_event, ticket_price, artist_event, location_event, description_event, session['user'])
+    except:
+        return redirect(url_for("event_manager", messages='Network is offline, please try again in another moment...'))
 
     # Check the output of deploy_smart_contract_new_event()
     if smart_contract_name is not None and error == 'No error':
@@ -182,13 +212,15 @@ def event_create():
     else:
         return render_template('event_creation.html', error=error)
 
-
-
 # Show all events for Event Manager
 @app.route("/show_events_manager")
 def show_events_manager():
-    if session.get('role') != 'event_manager' or session.get('logged_in') is False:
-        return redirect("http://127.0.0.1:5000/single_event_seats/Bho", code=302)
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'event_manager':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
+
     list_event_names = []
 
     # Extract name of events on the block chain from the dictionary created or read it from the local file.
@@ -198,6 +230,8 @@ def show_events_manager():
             event_dict = blockchain_manager.get_smart_contracts_dict()
             event_dict = event_dict.keys()
         for key in event_dict:
+            print('ciao')
+            print(key)
             list_event_names.append(key)
     except Exception as e:
         if (len(list_event_names) == 0):
@@ -206,13 +240,16 @@ def show_events_manager():
 
     return render_template('show_events_manager.html', event_names=list_event_names)
 
-
-
 # Show all events for reseller
 @app.route("/show_events")
 def show_events():
-    if session.get('role') != 'reseller' or session.get('logged_in') is False:
-        return redirect("http://127.0.0.1:5000/single_event_seats/Bho", code=302)
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'reseller':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
+        #return render_template("/login.html", error="Acess denied.")
+
     list_event_names = []
 
     # Extract name of events on the block chain from the dictionary created or read it from the local file.
@@ -237,10 +274,16 @@ def event_info_manager(event_name):
     :param event_name: Event's name
     :return:
     """
-    if session.get('role') != 'event_manager' or session.get('logged_in') is False:
-        return render_template("login.html", error='Please, log in.')
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'event_manager':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
 
-    date, available_seats, ticket_price, artist, location, description, e = blockchain_manager.get_event_information(session['user'], event_name)
+    try:
+        date, available_seats, ticket_price, artist, location, description, e = blockchain_manager.get_event_information(session['user'], event_name)
+    except:
+        return redirect(url_for('event_manager', messages='Network is offline, please try again in another moment...'))
 
     # TODO: Controllo su data (se passata, rendere l'evento non acquistabile) e posti disponibili (se esauriti,
     #  rendere l'evento non acquistabile.
@@ -263,9 +306,17 @@ def single_event_seats(event_name):
     :param event_name: Event's name
     :return:
     """
-    if session.get('role') != 'reseller' or session.get('logged_in') is False:
-        return render_template("login.html", error='Please, log in.')
-    date, available_seats, ticket_price, artist, location, description, e = blockchain_manager.get_event_information(session['user'], event_name)
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'reseller':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
+
+    try:
+        date, available_seats, ticket_price, artist, location, description, e = blockchain_manager.get_event_information(session['user'], event_name)
+    except:
+        return redirect(url_for('reseller', messages='Network is offline, please try again in another moment...'))
+
     # TODO: Controllo su data (se passata, rendere l'evento non acquistabile) e posti disponibili (se esauriti,
     #  rendere l'evento non acquistabile.
 
@@ -278,11 +329,13 @@ def single_event_seats(event_name):
                            event_seats=available_seats, ticket_price=ticket_price, event_artist=artist,
                            event_location=location, event_description=description)
 
-
 @app.route("/purchase_seats_event/<event_name>", methods=['POST'])
 def purchase_seats_event(event_name):
-    if session.get('role') != 'reseller' or session.get('logged_in') is False:
-        return render_template("login.html", error='Please, log in.')
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'reseller':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
 
     date, available_seats, ticket_price, artist, location, description, e = blockchain_manager.get_event_information(session['user'], event_name)
     seats_purchase = int(escape(request.form['input_seats']))
@@ -324,7 +377,6 @@ def purchase_seats_event(event_name):
         return render_template('single_event_seats.html', error=e_purchase, event_name=event_name, event_date=x[0], event_hours=x[1],
                                event_seats=available_seats, ticket_price=ticket_price, event_artist=artist,
                                event_location=location, event_description=description)
-
 
 if __name__ == "__main__":
     app.config['ENV'] = 'development'

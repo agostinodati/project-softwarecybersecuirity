@@ -11,6 +11,7 @@
           cursor: pointer;
           font-family: Arial, Helvetica, sans-serif;
           width: 60%;
+          padding: 10px 18px;
         }
 
         button:hover {
@@ -78,7 +79,7 @@
       <div class="container" align="center">
        <p class="lead" style="color:red;font-weight: bold;">{{error}}</p>
         {% for event_name in event_names %}
-            <img src="{{image}}" alt="" uk-cover>
+          <img src="{{image}}" alt="" uk-cover>
           <a href="single_event_seats/{{event_name}}"><button><b>{{event_name}}</b></button></a>
         {% endfor %}
        <p align="center">

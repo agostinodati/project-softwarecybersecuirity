@@ -10,6 +10,7 @@
           border: none;
           cursor: pointer;
           font-family: Arial, Helvetica, sans-serif;
+          padding: 10px 18px;
         }
 
         .btn {
@@ -17,8 +18,7 @@
         }
 
         .logoutbtn {
-          width: 15%;
-          padding: 10px 18px;
+          width: 20%;
           background-color: #f44336;
         }
 
@@ -80,9 +80,10 @@
   <div id="rcorners2">
     <h1 class="text-muted">Welcome to the Event Manager's page!</h1>
     <div class="container" align="center">
-        <a href="/event_creation"><button class="btn">Go to the Event's Creation page.</button></a>
-        <a href="/show_events_manager"><button class="btn">Go to the Event's List page.</button></a>
-      <p align="center">
+        <p class="lead" style="color:red;font-weight: bold;text-align: center;">{{error}}</p>
+        <a href="/event_creation"><button class="btn">Create an event.</button></a>
+        <a href="/show_events_manager"><button class="btn">Event Info List page.</button></a>
+        <p align="center">
         <a href="/logout"><button type="button" class="logoutbtn">Log Out</button></a>
       </p>
     </div>

@@ -31,6 +31,7 @@
           border: none;
           cursor: pointer;
           width: 45%;
+          padding: 10px 18px;
         }
 
         button:hover {
@@ -75,7 +76,7 @@
         <h1>Insert event's informations</h1>
         <div class="container">
             <p class="lead" style="color:red;font-weight: bold;">{{error}}</p>
-            <form class="form-signin" action="/event_create" method="post">
+            <form class="form-signin" action="/event_creation" method="post">
                 <label for="input_name"><b>Name</b></label>
                 <input type="name" name="input_name" id="input_name" class="form-control" placeholder="Name" required autofocus>
 
