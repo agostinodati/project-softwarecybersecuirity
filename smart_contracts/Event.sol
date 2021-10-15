@@ -15,7 +15,8 @@ contract Event {
   uint256 private initialAvailableSeats; // Store the initial amount of available seats
   mapping(address => uint256) private resellerSeatsList; // Store the address of the reseller and number of seats purchased
 
-  constructor(string memory eventName, string memory eventDate, uint256 seats,  uint256 eventSeatsPrice, string memory eventArtist, string memory eventLocation, string memory eventDescription) public {
+  constructor(string memory eventName, string memory eventDate, uint256 seats,  uint256 eventSeatsPrice,
+    string memory eventArtist, string memory eventLocation, string memory eventDescription) public {
     setName(eventName);
     setDate(eventDate);
     setArtist(eventArtist);

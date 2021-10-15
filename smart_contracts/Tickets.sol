@@ -10,6 +10,7 @@ contract TicketOffice {
     address eventAddress;
     uint256 totalTickets;
     uint256 remainingTickets;
+    uint256 ticketsPrice;
     mapping(address => uint256) buyersTickets; // Map to store the purchase of buyers.
 
     struct Ticket {
@@ -25,7 +26,7 @@ contract TicketOffice {
 
     Ticket[] tickets;
 
-    constructor (address memory reseller, address memory eventAdr) public {
+    constructor (address memory reseller, address memory eventAdr, uint price) public {
         Event eventPurchased = Event(eventAdr);
 
         ticketCounter = 0;
@@ -33,9 +34,10 @@ contract TicketOffice {
         eventAddress = eventAdr;
         totalTickets = eventPurchased.getAvailableSeats();
         remainingTickets = eventPurchased.getAvailableSeats();
+        ticketsPrice = price;
     }
 
-    function createTicket(address memory buyer, uint256 price, string memory seal,
+    function createTicket(address memory buyer, string memory seal,
         string memory timestamp) public returns(uint256) {
         if (getRemainingTickets() == 0) throw;
 
@@ -45,7 +47,7 @@ contract TicketOffice {
         Ticket new_ticket = Ticket({
             ticketId: id,
             eventName: eventPurchased.getName(),
-            ticketPrice: price,
+            ticketPrice: ticketsPrice,
             eventDate: eventPurchased.getDate(),
             buyerAddress: buyer,
             ticketSeal: seal,
@@ -58,6 +60,14 @@ contract TicketOffice {
         buyersTickets(buyer) = id;
 
         return id;
+    }
+
+    function setTicketsPrice(uint price) public {
+        ticketsPrice = price;
+    }
+
+    function getTicketsPrice() public view returns (uint){
+        return ticketsPrice;
     }
 
     function getTicketIdByAddressBuyer(address memory buyerAddress) public view returns (string) {

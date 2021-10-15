@@ -80,7 +80,12 @@
        <p class="lead" style="color:red;font-weight: bold;">{{error}}</p>
         {% for event_name in event_names %}
           <img src="{{image}}" alt="" uk-cover>
+          {% if mode == "purchase" %}
           <a href="single_event_seats/{{event_name}}"><button><b>{{event_name}}</b></button></a>
+          {% endif %}
+          {% if mode == "show" %}
+          <a href="single_event_tickets/{{event_name}}"><button><b>{{event_name}}</b></button></a>
+          {% endif %}
         {% endfor %}
        <p align="center">
            <a href="/back"><button class="backbtn" type="button">Back</button></a>

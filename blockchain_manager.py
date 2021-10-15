@@ -23,6 +23,8 @@ def get_smart_contracts_dict():
     :return: Dictionary (name: address) of the smart contracts deployed on the blockchain
     """
 
+    #TODO: Criptare il file locale, salvare in memoria una copia del dizionario per poter avere una copia di backup nel caso il file
+    #      venga perso e salvare il tutto sul db. Risolvere problema omonimi.
     return np.load(smart_contract_local, allow_pickle='TRUE').item()
 
 
@@ -176,7 +178,7 @@ def get_event_information(username, name_event):
         try:
             date_event = event.functions.getDate().call()
             available_seats_event = event.functions.getAvailableSeats().call()
-            ticket_price = event.functions.getSeatsPrice().call()
+            seats_price = event.functions.getSeatsPrice().call()
 
             artist_event = event.functions.getArtist().call()
             location_event = event.functions.getLocation().call()
@@ -184,7 +186,7 @@ def get_event_information(username, name_event):
         except Exception as e:
             return None, None, None, None, None, None, e
 
-        return date_event, available_seats_event, ticket_price, artist_event, location_event, description_event, None
+        return date_event, available_seats_event, seats_price, artist_event, location_event, description_event, None
 
 
 def purchase_seats(username, name_event, seats_purchase):
@@ -233,7 +235,7 @@ def purchase_seats(username, name_event, seats_purchase):
         return None
 
 
-def deploy_ticket(address_event, username="reseller"):
+def deploy_ticket(address_event, ticket_price, username="reseller"):
     error = 'No error'
 
     install_solc('0.7.0')  # Install the compiler of Solidity
@@ -289,7 +291,7 @@ def deploy_ticket(address_event, username="reseller"):
 
         try:
             print('Sending the transaction...')
-            tx_hash = ticket_office.constructor(address_reseller, address_event).transact(transaction)
+            tx_hash = ticket_office.constructor(address_reseller, address_event, ticket_price).transact(transaction)
 
             # Wait for the transaction to be mined, and get the transaction receipt
             tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
@@ -341,3 +343,80 @@ def create_ticket(username, price, seal):
             return None, None, None, e
 
         return ticket_id, None
+
+
+def get_reseller_events(username="reseller"):
+    config = configparser.ConfigParser()  # Use to access to the config file
+    config.read('config.ini')
+
+    #address_reseller = address_reseller.encode('utf-8')
+
+    events = get_smart_contracts_dict()
+    event_dict = events.keys()
+    list_event_names = []
+    for key in event_dict:
+        list_event_names.append(key)
+
+    try:
+        w3 = Web3(Web3.HTTPProvider(config[username]["address_node"]))
+    except Exception as e:
+        return None, None, e
+
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+    if w3.isConnected():
+        print("Connected to the blockchain.")
+        w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
+        address_reseller = w3.eth.accounts[0]
+
+        reseller_events = []
+
+        for event_name in list_event_names:
+            address_event, abi_event = get_address_abi(event_name)
+            event = w3.eth.contract(address=address_event, abi=abi_event)
+
+            try:
+                seats_reseller = event.functions.getReseller_seats(address_reseller).call()
+                if seats_reseller > 0:
+                    # reseller_events.append(event_name, (address_event, abi_event))
+                    reseller_events.append(event_name)
+            except Exception as e:
+                return None, e
+
+        return reseller_events, None
+
+
+def get_reseller_tickets_for_event(event_name, username="reseller"):
+    config = configparser.ConfigParser()  # Use to access to the config file
+    config.read('config.ini')
+
+    # address_reseller = address_reseller.encode('utf-8')
+
+    events = get_smart_contracts_dict()
+    event_dict = events.keys()
+    list_event_names = []
+    for key in event_dict:
+        list_event_names.append(key)
+
+    try:
+        w3 = Web3(Web3.HTTPProvider(config[username]["address_node"]))
+    except Exception as e:
+        return None, None, e
+
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+    if w3.isConnected():
+        print("Connected to the blockchain.")
+        w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
+        address_reseller = w3.eth.accounts[0]
+
+        address_event, abi_event = get_address_abi(event_name)
+        event = w3.eth.contract(address=address_event, abi=abi_event)
+
+        try:
+            seats_reseller = event.functions.getReseller_seats(address_reseller).call()
+            return seats_reseller
+        except Exception as e:
+                return None, e
+
+        return seats_reseller, None
