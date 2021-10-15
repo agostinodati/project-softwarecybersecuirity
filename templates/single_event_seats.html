@@ -78,6 +78,7 @@
         <label><b>Artist name:</b></label> <h2>{{event_artist}}</h2>
         <label><b>Location:</b></label> <h2>{{event_location}}</h2>
         <label><b>Description:</b></label> <h2>{{event_description}}</h2>
+
         {% if mode == "purchase" %}
         <label><b>Available seats:</b></label> <h2>{{event_seats}}</h2>
         <label><b>Seats price:</b></label> <h2>{{seats_price}} €</h2>
@@ -96,7 +97,9 @@
         {% if mode == "show" %}
         <label><b>Ticket's price:</b></label> <h2>{{ticket_price}}</h2>
         <label><b>Available tickets:</b></label> <h2>{{available_tickets}}</h2>
-        <a href="/back"><button class="backbtn" type="button">Back</button></a>
+        <p align="center">
+            <a href="/back"><button class="backbtn" type="button">Back</button></a>
+        </p>
         {% endif%}
     </div>
 </div>

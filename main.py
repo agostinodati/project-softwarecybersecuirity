@@ -245,13 +245,12 @@ def show_events_manager():
             event_dict = blockchain_manager.get_smart_contracts_dict()
             event_dict = event_dict.keys()
         for key in event_dict:
-            print('ciao')
-            print(key)
             list_event_names.append(key)
     except Exception as e:
-        if len(list_event_names) == 0:
-            return render_template('show_events_manager.html', error='There are no events currently listed.')
         return render_template('show_events_manager.html', error=e)
+
+    if len(list_event_names) == 0:
+        return render_template('show_events_manager.html', error='There are no events currently listed.')
 
     return render_template('show_events_manager.html', event_names=list_event_names)
 
@@ -278,7 +277,10 @@ def show_events():
         for key in event_dict:
             list_event_names.append(key)
     except Exception as e:
-        return render_template('show_events.html', mode=mode, error='Something went wrong.')
+        return render_template('show_events.html', mode=mode, error=e)
+
+    if len(list_event_names) == 0:
+        return render_template('show_events.html', mode=mode, error='There are no events currently listed.')
 
     return render_template('show_events.html', mode=mode, event_names=list_event_names)
 
@@ -359,8 +361,12 @@ def purchase_seats_event(event_name):
         session['logged_in'] = False
         return redirect(url_for("login", messages="Access denied."))
 
-    date, available_seats, seats_price, artist, location, description, e = blockchain_manager.get_event_information(
-        session['user'], event_name)
+    try:
+        date, available_seats, seats_price, artist, location, description, e = blockchain_manager.get_event_information(
+            session['user'], event_name)
+    except:
+        return redirect(url_for('reseller', messages='Network is offline, please try again in another moment...'))
+
     seats_purchase = int(escape(request.form['input_seats']))
     ticket_price = int(escape(request.form['ticket_price']))
 
@@ -417,9 +423,18 @@ def show_events_purchased_reseller():
         session['logged_in'] = False
         return redirect(url_for("login", messages="Access denied."))
 
-    list_event_names, error = blockchain_manager.get_reseller_events()
-
     mode = "show"
+    list_event_names = []
+
+    try:
+        list_event_names, error = blockchain_manager.get_reseller_events()
+        print(len(list_event_names))
+    except Exception as e:
+        render_template('show_events.html', error=e)
+
+    if (len(list_event_names) == 0):
+        return render_template('show_events.html', mode=mode, event_names=list_event_names,
+                               error='No seats have been purchased.')
 
     if error is None:
         return render_template('show_events.html', mode=mode, event_names=list_event_names)
@@ -441,7 +456,6 @@ def single_event_tickets(event_name):
     elif session.get('role') != 'reseller':
         session['logged_in'] = False
         return redirect(url_for("login", messages="Access denied."))
-
     try:
         date, available_seats, ticket_price, artist, location, description, e = blockchain_manager.get_event_information(
             session['user'], event_name)
