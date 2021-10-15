@@ -8,6 +8,7 @@ import configparser
 import numpy as np
 from os.path import isfile
 import json
+import datetime
 
 
 sc_new_event = './smart_contracts/Event.sol'
@@ -134,8 +135,6 @@ def deploy_smart_contract_new_event(name_event, date_event, available_seats_even
         smart_contracts_dict = store_smart_contract_address(name_event_smart_contract,
                                                             address_event_smart_contract, abi_str)
 
-        #print(smart_contracts_dict)
-
         return name_event_smart_contract, error
 
 
@@ -175,13 +174,13 @@ def get_event_information(username, name_event):
         event = w3.eth.contract(address=address_event, abi=abi_event)
 
         try:
-            date_event = name_event_smart_contract = event.functions.getDate().call()
-            available_seats_event = name_event_smart_contract = event.functions.getAvailableSeats().call()
-            ticket_price = name_event_smart_contract = event.functions.getSeatsPrice().call()
+            date_event = event.functions.getDate().call()
+            available_seats_event = event.functions.getAvailableSeats().call()
+            ticket_price = event.functions.getSeatsPrice().call()
 
-            artist_event = name_event_smart_contract = event.functions.getArtist().call()
-            location_event = name_event_smart_contract = event.functions.getLocation().call()
-            description_event = name_event_smart_contract = event.functions.getDescription().call()
+            artist_event = event.functions.getArtist().call()
+            location_event = event.functions.getLocation().call()
+            description_event = event.functions.getDescription().call()
         except Exception as e:
             return None, None, None, None, None, None, e
 
@@ -234,13 +233,14 @@ def purchase_seats(username, name_event, seats_purchase):
         return None
 
 
-def deploy_ticket():
-    username = "event_man"
+def deploy_ticket(address_event, username="reseller"):
     error = 'No error'
 
     install_solc('0.7.0')  # Install the compiler of Solidity
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
+
+    address_reseller = config[username]["address_node"]
 
     # Compile the smart contract
     try:
@@ -289,11 +289,12 @@ def deploy_ticket():
 
         try:
             print('Sending the transaction...')
-            tx_hash = ticket_office.constructor().transact(transaction)
+            tx_hash = ticket_office.constructor(address_reseller, address_event).transact(transaction)
 
             # Wait for the transaction to be mined, and get the transaction receipt
             tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
             print('Transaction sent.')
+
         except Exception as e:
             error = e
             return None, error
@@ -301,16 +302,8 @@ def deploy_ticket():
         address_ticket_office = tx_receipt.contractAddress
         ticket = w3.eth.contract(address=address_ticket_office, abi=abi)
 
-        try:
-            result = ticket.functions.create
-            result = ticket.functions.createTicketNFT().transact(transaction)
-            print(str(result))
-        except Exception as e:
-            error = e
-            return None, error
-
         abi_str = json.dumps(abi)
-        name_smart_contract = "NFT generator"
+        name_smart_contract = "Ticket Office"
         ticket_smart_contracts_dict = store_smart_contract_address(name_smart_contract,
                                                                    address_ticket_office, abi_str,
                                                                    ticket_smart_contract_local)
@@ -318,3 +311,33 @@ def deploy_ticket():
         print(ticket_smart_contracts_dict)
 
         return ticket_smart_contracts_dict, error
+
+
+def create_ticket(username, price, seal):
+    config = configparser.ConfigParser()  # Use to access to the config file
+    config.read('config.ini')
+
+    address_buyer = config[username]["address_node"]
+
+    try:
+        w3 = Web3(Web3.HTTPProvider(config[username]["address_node"]))
+    except Exception as e:
+        return None, None, e
+
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+    if w3.isConnected():
+        print("Connected to the blockchain.")
+        w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
+
+        address, abi = get_address_abi("Ticket Office")
+        ticket_office = w3.eth.contract(address=address, abi=abi)
+
+        timestamp = datetime.datetime.today()
+
+        try:
+            ticket_id = ticket_office.functions.createTicket(address_buyer, price, seal, timestamp)
+        except Exception as e:
+            return None, None, None, e
+
+        return ticket_id, None
