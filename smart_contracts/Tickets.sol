@@ -6,7 +6,9 @@ contract TicketOffice {
     enum ticketStates {valid, cancelled, obliterated}
 
     uint256 private ticketCounter; // counter for
-    address resellerAddress;
+
+    string resellerAddress;
+
     address eventAddress;
     uint256 totalTickets;
     uint256 remainingTickets;
@@ -26,15 +28,17 @@ contract TicketOffice {
 
     Ticket[] tickets;
 
-    constructor (address reseller, address eventAdr, uint price) public {
+    constructor (string memory reseller, address eventAdr, uint price) public {
         Event eventPurchased = Event(eventAdr);
-
         ticketCounter = 1;
-        resellerAddress = reseller;
-        eventAddress = eventAdr;
+        setResellerAdd(reseller);
+        //resellerAddress = reseller;
+        setEventAdd(eventAdr);
+        //eventAddress = eventAdr;
         totalTickets = eventPurchased.getAvailableSeats();
         remainingTickets = eventPurchased.getAvailableSeats();
-        ticketsPrice = price;
+        //ticketsPrice = price;
+        setTicketsPrice(price);
     }
 
     function createTicket(address buyer, string memory seal,
@@ -62,6 +66,22 @@ contract TicketOffice {
         buyersTickets[buyer] = id;
 
         return id;
+    }
+
+    function setResellerAdd(string memory reseller) public {
+        resellerAddress = reseller;
+    }
+
+    function getResellerAdd() public view returns (string memory){
+        return resellerAddress;
+    }
+
+    function setEventAdd(address eventAdr) public {
+        eventAddress = eventAdr;
+    }
+
+    function getEventAdd() public view returns (address){
+        return eventAddress;
     }
 
     function setTicketsPrice(uint price) public {

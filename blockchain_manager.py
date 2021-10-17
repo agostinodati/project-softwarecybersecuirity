@@ -20,7 +20,7 @@ ticket_smart_contracts_dict_global = {}
 smart_contracts_dict_global = {}
 
 
-def get_smart_contracts_dict(mode="event"):
+def get_smart_contracts_dict(mode):
     """
     Get the dictionary (name: address) of the smart contracts deployed on the blockchain.
     :return: Dictionary (name: address) of the smart contracts deployed on the blockchain
@@ -30,13 +30,13 @@ def get_smart_contracts_dict(mode="event"):
     #      venga perso e salvare il tutto sul db. Risolvere problema omonimi.
     dictio = {}
     if mode == "event":
-        dictio =  np.load(smart_contract_local, allow_pickle='TRUE').item()
+        dictio = np.load(smart_contract_local, allow_pickle='TRUE').item()
     elif mode == "ticket_office":
         dictio = np.load(ticket_smart_contract_local, allow_pickle='TRUE').item()
     return dictio
 
 
-def store_smart_contract_address(name_contract, address_contract, abi, smart_contract_local_path=smart_contract_local):
+def store_smart_contract_address(name_contract, address_contract, abi, smart_contract_local_path):
     """
     This function will store the contract name and the address in a dictionary and in a file in the local system.
     :param smart_contract_local_path: path of where store the smart contract.
@@ -145,7 +145,7 @@ def deploy_smart_contract_new_event(name_event, date_event, available_seats_even
 
         abi_str = json.dumps(abi)
         smart_contracts_dict = store_smart_contract_address(name_event_smart_contract,
-                                                            address_event_smart_contract, abi_str)
+                                                            address_event_smart_contract, abi_str, smart_contract_local)
 
         global smart_contracts_dict_global
         smart_contracts_dict_global = smart_contracts_dict.copy()
@@ -153,7 +153,7 @@ def deploy_smart_contract_new_event(name_event, date_event, available_seats_even
         return name_event_smart_contract, error
 
 
-def get_address_abi(name, mode="event"):
+def get_address_abi(name, mode):
     """
     Obtains the address and the abi of the smart contract using the name of the event.
     :param mode: if event, load from the file of events, if ticket_office load the file oj tickets
@@ -187,7 +187,7 @@ def get_event_information(username, name_event):
         print("Connected to the blockchain.")
         w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
 
-        address_event, abi_event = get_address_abi(name_event)
+        address_event, abi_event = get_address_abi(name_event, "event")
         event = w3.eth.contract(address=address_event, abi=abi_event)
 
         try:
@@ -227,7 +227,7 @@ def purchase_seats(username, name_event, seats_purchase):
         print("Connected to the blockchain.")
         w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
 
-        address_event, abi_event = get_address_abi(name_event)
+        address_event, abi_event = get_address_abi(name_event, "event")
         event = w3.eth.contract(address=address_event, abi=abi_event)
 
         # Submit the transaction that deploys the contract
@@ -251,7 +251,7 @@ def purchase_seats(username, name_event, seats_purchase):
 
 
 def deploy_ticket(event_name, address_event, ticket_price, username="reseller"):
-    error = 'No error'
+    error = None
 
     install_solc('0.7.0')  # Install the compiler of Solidity
     config = configparser.ConfigParser()  # Use to access to the config file
@@ -263,13 +263,14 @@ def deploy_ticket(event_name, address_event, ticket_price, username="reseller"):
     try:
         source_code = open(sc_ticket, 'r').read()
         compiled_sol = compile_source(source_code)
-        print(compiled_sol)
     except Exception as e:
         error = e
         return None, error
 
     # Retrieve the contract interface and get bytecode / abi
     try:
+        #waste first item in stack
+        compiled_sol.popitem()
         contract_id, contract_interface = compiled_sol.popitem()
         abi = contract_interface['abi']
         bytecode = contract_interface['bin']
@@ -313,6 +314,7 @@ def deploy_ticket(event_name, address_event, ticket_price, username="reseller"):
             print('Transaction sent.')
 
         except Exception as e:
+            print(e)
             error = e
             return None, error
 
@@ -324,7 +326,7 @@ def deploy_ticket(event_name, address_event, ticket_price, username="reseller"):
                                                                    address_ticket_office, abi_str,
                                                                    ticket_smart_contract_local)
 
-        print(ticket_smart_contracts_dict)
+        #print(ticket_smart_contracts_dict)
 
         global ticket_smart_contracts_dict_global
         ticket_smart_contracts_dict_global = ticket_smart_contracts_dict.copy()
@@ -349,7 +351,7 @@ def create_ticket(username, price, seal):
         print("Connected to the blockchain.")
         w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
 
-        address, abi = get_address_abi("Ticket Office")
+        address, abi = get_address_abi("Ticket Office", "ticket_office")
         ticket_office = w3.eth.contract(address=address, abi=abi)
 
         timestamp = datetime.datetime.today()
@@ -366,7 +368,7 @@ def get_reseller_events(username="reseller"):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
-    events = get_smart_contracts_dict()
+    events = get_smart_contracts_dict("event")
     event_dict = events.keys()
     list_event_names = []
     for key in event_dict:
@@ -387,7 +389,7 @@ def get_reseller_events(username="reseller"):
         reseller_events = []
 
         for event_name in list_event_names:
-            address_event, abi_event = get_address_abi(event_name)
+            address_event, abi_event = get_address_abi(event_name,"event")
             event = w3.eth.contract(address=address_event, abi=abi_event)
 
             try:
@@ -407,7 +409,7 @@ def get_reseller_tickets_for_event(event_name, username="reseller"):
 
     # address_reseller = address_reseller.encode('utf-8')
 
-    events = get_smart_contracts_dict()
+    events = get_smart_contracts_dict("event")
     event_dict = events.keys()
     list_event_names = []
     for key in event_dict:
@@ -425,7 +427,7 @@ def get_reseller_tickets_for_event(event_name, username="reseller"):
         w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
         address_reseller = w3.eth.accounts[0]
 
-        address_event, abi_event = get_address_abi(event_name)
+        address_event, abi_event = get_address_abi(event_name, "event")
         event = w3.eth.contract(address=address_event, abi=abi_event)
 
         try:
@@ -459,7 +461,7 @@ def get_ticket_info(name_event, username="reseller"):
             ticket_price = ticket_office.functions.getTicketsPrice().call()
             ticket_remaining = ticket_office.functions.getRemainingTickets().call()
         except Exception as e:
-            None, None, e
+            return None, None, e
 
         return ticket_price, ticket_remaining, None
 
