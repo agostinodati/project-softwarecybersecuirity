@@ -1,6 +1,6 @@
 pragma solidity >0.5.0;
 
-import "./Event.sol";
+import "./smart_contracts/Event.sol";
 
 contract TicketOffice {
     enum ticketStates {valid, cancelled, obliterated}
@@ -26,10 +26,10 @@ contract TicketOffice {
 
     Ticket[] tickets;
 
-    constructor (address memory reseller, address memory eventAdr, uint price) public {
+    constructor (address reseller, address eventAdr, uint price) public {
         Event eventPurchased = Event(eventAdr);
 
-        ticketCounter = 0;
+        ticketCounter = 1;
         resellerAddress = reseller;
         eventAddress = eventAdr;
         totalTickets = eventPurchased.getAvailableSeats();
@@ -37,14 +37,14 @@ contract TicketOffice {
         ticketsPrice = price;
     }
 
-    function createTicket(address memory buyer, string memory seal,
+    function createTicket(address buyer, string memory seal,
         string memory timestamp) public returns(uint256) {
-        if (getRemainingTickets() == 0) throw;
+        if (getRemainingTickets() == 0) revert();
 
         Event eventPurchased = Event(eventAddress);
         uint256 id = ticketCounter;
 
-        Ticket new_ticket = Ticket({
+        Ticket memory new_ticket = Ticket({
             ticketId: id,
             eventName: eventPurchased.getName(),
             ticketPrice: ticketsPrice,
@@ -57,7 +57,9 @@ contract TicketOffice {
         tickets.push(new_ticket);
         ticketCounter = ticketCounter + 1;
 
-        buyersTickets(buyer) = id;
+        remainingTickets = remainingTickets - 1;
+
+        buyersTickets[buyer] = id;
 
         return id;
     }
@@ -70,14 +72,14 @@ contract TicketOffice {
         return ticketsPrice;
     }
 
-    function getTicketIdByAddressBuyer(address memory buyerAddress) public view returns (string) {
+    function getTicketIdByAddressBuyer(address buyerAddress) public view returns (uint256) {
         // Search in the map the ticket id of the buyer.
-        string ticketId;
-        if (buyersTickets[buyerAddress] != int256(0x0)){
+        uint256 ticketId;
+        if (buyersTickets[buyerAddress] != uint256(0x0)){
             ticketId = buyersTickets[buyerAddress];
         }
         else{
-            ticketId = "Ticket ID not found.";
+            ticketId = 0;
         }
         return ticketId;
     }

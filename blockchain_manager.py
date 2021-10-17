@@ -16,8 +16,11 @@ sc_ticket = './smart_contracts/Tickets.sol'
 smart_contract_local = './smart_contracts/address_dict.npy'
 ticket_smart_contract_local = './smart_contracts/ticket_address_dict.npy'
 
+ticket_smart_contracts_dict_global = {}
+smart_contracts_dict_global = {}
 
-def get_smart_contracts_dict():
+
+def get_smart_contracts_dict(mode="event"):
     """
     Get the dictionary (name: address) of the smart contracts deployed on the blockchain.
     :return: Dictionary (name: address) of the smart contracts deployed on the blockchain
@@ -25,7 +28,12 @@ def get_smart_contracts_dict():
 
     #TODO: Criptare il file locale, salvare in memoria una copia del dizionario per poter avere una copia di backup nel caso il file
     #      venga perso e salvare il tutto sul db. Risolvere problema omonimi.
-    return np.load(smart_contract_local, allow_pickle='TRUE').item()
+    dictio = {}
+    if mode == "event":
+        dictio =  np.load(smart_contract_local, allow_pickle='TRUE').item()
+    elif mode == "ticket_office":
+        dictio = np.load(ticket_smart_contract_local, allow_pickle='TRUE').item()
+    return dictio
 
 
 def store_smart_contract_address(name_contract, address_contract, abi, smart_contract_local_path=smart_contract_local):
@@ -48,7 +56,8 @@ def store_smart_contract_address(name_contract, address_contract, abi, smart_con
     return read_dictionary
 
 
-def deploy_smart_contract_new_event(name_event, date_event, available_seats_event, ticket_price, artist_event, location_event, description_event, username):
+def deploy_smart_contract_new_event(name_event, date_event, available_seats_event, ticket_price, artist_event,
+                                    location_event, description_event, username):
     """
     This function create the smart contract of a new event added by the event manager.
     :param name_event: Name of the event
@@ -114,7 +123,8 @@ def deploy_smart_contract_new_event(name_event, date_event, available_seats_even
 
         try:
             print('Sending the transaction...')
-            tx_hash = new_event_contract.constructor(name_event, date_event, available_seats_event, ticket_price, artist_event, location_event, description_event).transact(
+            tx_hash = new_event_contract.constructor(name_event, date_event, available_seats_event, ticket_price,
+                                                     artist_event, location_event, description_event).transact(
                 transaction)
 
             # Wait for the transaction to be mined, and get the transaction receipt
@@ -137,17 +147,22 @@ def deploy_smart_contract_new_event(name_event, date_event, available_seats_even
         smart_contracts_dict = store_smart_contract_address(name_event_smart_contract,
                                                             address_event_smart_contract, abi_str)
 
+        global smart_contracts_dict_global
+        smart_contracts_dict_global = smart_contracts_dict.copy()
+
         return name_event_smart_contract, error
 
 
-def get_address_abi(name):
+def get_address_abi(name, mode="event"):
     """
     Obtains the address and the abi of the smart contract using the name of the event.
+    :param mode: if event, load from the file of events, if ticket_office load the file oj tickets
     :param name: Name of the smart contract (event)
     :return: Address, abi
     """
-    dict_event = get_smart_contracts_dict()
+    dict_event = get_smart_contracts_dict(mode)
     address, abi = dict_event[name]
+
     return address, abi
 
 
@@ -235,7 +250,7 @@ def purchase_seats(username, name_event, seats_purchase):
         return None
 
 
-def deploy_ticket(address_event, ticket_price, username="reseller"):
+def deploy_ticket(event_name, address_event, ticket_price, username="reseller"):
     error = 'No error'
 
     install_solc('0.7.0')  # Install the compiler of Solidity
@@ -305,12 +320,14 @@ def deploy_ticket(address_event, ticket_price, username="reseller"):
         ticket = w3.eth.contract(address=address_ticket_office, abi=abi)
 
         abi_str = json.dumps(abi)
-        name_smart_contract = "Ticket Office"
-        ticket_smart_contracts_dict = store_smart_contract_address(name_smart_contract,
+        ticket_smart_contracts_dict = store_smart_contract_address(event_name,
                                                                    address_ticket_office, abi_str,
                                                                    ticket_smart_contract_local)
 
         print(ticket_smart_contracts_dict)
+
+        global ticket_smart_contracts_dict_global
+        ticket_smart_contracts_dict_global = ticket_smart_contracts_dict.copy()
 
         return ticket_smart_contracts_dict, error
 
@@ -348,8 +365,6 @@ def create_ticket(username, price, seal):
 def get_reseller_events(username="reseller"):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
-
-    #address_reseller = address_reseller.encode('utf-8')
 
     events = get_smart_contracts_dict()
     event_dict = events.keys()
@@ -420,3 +435,31 @@ def get_reseller_tickets_for_event(event_name, username="reseller"):
                 return None, e
 
         return seats_reseller, None
+
+
+def get_ticket_info(name_event, username="reseller"):
+    config = configparser.ConfigParser()  # Use to access to the config file
+    config.read('config.ini')
+
+    try:
+        w3 = Web3(Web3.HTTPProvider(config[username]["address_node"]))
+    except Exception as e:
+        return None, None, e
+
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+    if w3.isConnected():
+        print("Connected to the blockchain.")
+        w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
+
+        address_event, abi_event = get_address_abi(name_event, "ticket_office")
+        ticket_office = w3.eth.contract(address=address_event, abi=abi_event)
+
+        try:
+            ticket_price = ticket_office.functions.getTicketsPrice().call()
+            ticket_remaining = ticket_office.functions.getRemainingTickets().call()
+        except Exception as e:
+            None, None, e
+
+        return ticket_price, ticket_remaining, None
+

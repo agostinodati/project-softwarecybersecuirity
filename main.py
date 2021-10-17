@@ -402,7 +402,14 @@ def purchase_seats_event(event_name):
     mode = "purchase"
     if error_purchase is None:
         address_event, abi = blockchain_manager.get_address_abi(event_name)
-        blockchain_manager.deploy_ticket(address_event, ticket_price)
+
+        dict_ticket, error_ticket = blockchain_manager.deploy_ticket(event_name, address_event, ticket_price)
+        if error_ticket is not None:
+            return render_template('single_event_seats.html', mode=mode, error=error_ticket,
+                                   event_name=event_name,
+                                   event_date=x[0], event_hours=x[1], event_seats=available_seats,
+                                   ticket_price=ticket_price,
+                                   event_artist=artist, event_location=location, event_description=description)
         return render_template('single_event_seats.html', mode=mode, error='Seats purchased successfully.', event_name=event_name,
                                event_date=x[0], event_hours=x[1], event_seats=available_seats,
                                ticket_price=ticket_price,
@@ -471,8 +478,7 @@ def single_event_tickets(event_name):
         x = [None, None]
 
     available_tickets = blockchain_manager.get_reseller_tickets_for_event(event_name)
-    # ticket_price = blockchain_manager.get_price(event_name)
-    ticket_price = "da completare"
+    ticket_price, ticket_remaining, e = blockchain_manager.get_ticket_info(event_name)
     mode = "show"
     return render_template('single_event_seats.html', mode=mode, event_name=event_name, event_date=x[0], event_hours=x[1], available_seats=available_seats,
                            available_tickets=available_tickets, ticket_price=ticket_price, event_artist=artist,
