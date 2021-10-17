@@ -496,6 +496,80 @@ def single_event_tickets(event_name):
                                available_tickets=available_tickets, ticket_price=ticket_p, event_artist=artist,
                                event_location=location, event_description=description, error=e)
 
+# Show the event list for the buyer
+@app.route("/show_events_buyer")
+def show_events_buyer():
+    """
+        Show the events for the buyer.
+        :param event_name: Event's name
+        :return:
+        """
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'buyer':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
+    list_event_names = []
+
+    # Extract name of events on the block chain from the dictionary created or read it from the local file.
+    try:
+        event_dict = blockchain_manager.get_smart_contracts_dict("ticket_office")
+        if not event_dict:
+            event_dict = blockchain_manager.get_smart_contracts_dict("ticket_office")
+            event_dict = event_dict.keys()
+        for key in event_dict:
+            list_event_names.append(key)
+    except Exception as e:
+        return render_template('show_events_buyer.html', error=e)
+
+    if len(list_event_names) == 0:
+        return render_template('show_events_buyer.html', error='There are no events currently listed.')
+
+    return render_template('show_events_buyer.html', event_names=list_event_names)
+
+# Show the information page for buying the ticket (buyer)
+@app.route("/event_info")
+@app.route("/event_info/<event_name>")
+def event_info(event_name):
+    """
+        Show the events for the buyer.
+        :param event_name: Event's name
+        :return:
+        """
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'buyer':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
+    try:
+        date, available_seats, ticket_price, artist, location, description, e = blockchain_manager.get_event_information(
+            session['user'], event_name)
+    except:
+        return redirect(url_for('buyer', messages='Network is offline, please try again in another moment...'))
+
+    # TODO: Controllo su data (se passata, rendere l'evento non acquistabile) e posti disponibili (se esauriti,
+    #  rendere l'evento non acquistabile.
+
+    try:
+        x = date.split("+")
+    except:
+        x = [None, None]
+
+    available_tickets = blockchain_manager.get_reseller_tickets_for_event(event_name)
+    ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_info(event_name)
+
+    if e is None:
+        return render_template('event_info.html', event_name=event_name, event_date=x[0],
+                               event_hours=x[1], available_seats=available_seats,
+                               available_tickets=available_tickets, seats_price=ticket_p, event_artist=artist,
+                               event_location=location, event_description=description, error="")
+    else:
+        return render_template('event_info.html', event_name=event_name, event_date=x[0],
+                               event_hours=x[1], available_seats=available_seats,
+                               available_tickets=available_tickets, seats_price=ticket_p, event_artist=artist,
+                               event_location=location, event_description=description, error=e)
+
+
 if __name__ == "__main__":
     app.config['ENV'] = 'development'
     app.config['DEBUG'] = True

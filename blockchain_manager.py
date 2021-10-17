@@ -271,6 +271,7 @@ def deploy_ticket(event_name, address_event, ticket_price, username="reseller"):
     try:
         #waste first item in stack
         compiled_sol.popitem()
+
         contract_id, contract_interface = compiled_sol.popitem()
         abi = contract_interface['abi']
         bytecode = contract_interface['bin']
