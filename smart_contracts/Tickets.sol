@@ -7,7 +7,7 @@ contract TicketOffice {
 
     uint256 private ticketCounter; // counter for
 
-    string resellerAddress;
+    address resellerAddress;
 
     address eventAddress;
     uint256 totalTickets;
@@ -28,15 +28,18 @@ contract TicketOffice {
 
     Ticket[] tickets;
 
-    constructor (string memory reseller, address eventAdr, uint price) public {
+    constructor (address reseller, address eventAdr, uint price, uint seats_purchase) public {
         Event eventPurchased = Event(eventAdr);
         ticketCounter = 1;
         setResellerAdd(reseller);
         //resellerAddress = reseller;
         setEventAdd(eventAdr);
         //eventAddress = eventAdr;
-        totalTickets = eventPurchased.getAvailableSeats();
-        remainingTickets = eventPurchased.getAvailableSeats();
+
+        //totalTickets = eventPurchased.getReseller_seats(reseller);
+        //remainingTickets = eventPurchased.getAvailableSeats();
+
+        setRemainingTickets(seats_purchase);
         //ticketsPrice = price;
         setTicketsPrice(price);
     }
@@ -51,7 +54,7 @@ contract TicketOffice {
         Ticket memory new_ticket = Ticket({
             ticketId: id,
             eventName: eventPurchased.getName(),
-            ticketPrice: ticketsPrice,
+            ticketPrice: getTicketsPrice(),
             eventDate: eventPurchased.getDate(),
             buyerAddress: buyer,
             ticketSeal: seal,
@@ -68,11 +71,11 @@ contract TicketOffice {
         return id;
     }
 
-    function setResellerAdd(string memory reseller) public {
+    function setResellerAdd(address reseller) public {
         resellerAddress = reseller;
     }
 
-    function getResellerAdd() public view returns (string memory){
+    function getResellerAdd() public view returns (address){
         return resellerAddress;
     }
 
@@ -117,5 +120,29 @@ contract TicketOffice {
     function getRemainingTickets() public view returns (uint256) {
         // Get the number of available tickets.
         return remainingTickets;
+    }
+
+    function setRemainingTickets(uint256 tickets) public {
+        require(tickets >= 0, "Insufficient available tickets!");
+        remainingTickets = tickets;
+  }
+
+    function getBuyer_seats(address buyer) view public returns (uint256){
+        return buyersTickets[buyer];
+    }
+
+    function purchaseTicket(uint256 ticketPurchased) public {
+        uint256 ticketLeft = getRemainingTickets() - ticketPurchased;
+        require(ticketLeft >= 0, "Insufficient available ticket!");
+
+        // Check if the address exists in the map... Prove the validity of this method!
+        if (buyersTickets[msg.sender] != uint256(0x0)){
+          uint256 actual_value = buyersTickets[msg.sender];
+          buyersTickets[msg.sender] = actual_value + uint256(ticketPurchased);
+        }
+        else{
+          buyersTickets[msg.sender] = uint256(ticketPurchased);
+        }
+        setRemainingTickets(uint256(ticketLeft));
     }
 }

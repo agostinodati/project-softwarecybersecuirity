@@ -250,7 +250,7 @@ def purchase_seats(username, name_event, seats_purchase):
         return None
 
 
-def deploy_ticket(event_name, address_event, ticket_price, username="reseller"):
+def deploy_ticket(event_name, address_event, ticket_price, seats_purchase, username="reseller"):
     error = None
 
     install_solc('0.7.0')  # Install the compiler of Solidity
@@ -294,6 +294,8 @@ def deploy_ticket(event_name, address_event, ticket_price, username="reseller"):
         print("Connected to the blockchain.")
         w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
 
+        address_reseller = w3.eth.accounts[0]
+
         ticket_office = w3.eth.contract(abi=abi, bytecode=bytecode)
 
         # Submit the transaction that deploys the contract
@@ -308,7 +310,7 @@ def deploy_ticket(event_name, address_event, ticket_price, username="reseller"):
 
         try:
             print('Sending the transaction...')
-            tx_hash = ticket_office.constructor(address_reseller, address_event, ticket_price).transact(transaction)
+            tx_hash = ticket_office.constructor(address_reseller, address_event, ticket_price, seats_purchase).transact(transaction)
 
             # Wait for the transaction to be mined, and get the transaction receipt
             tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
@@ -466,3 +468,48 @@ def get_ticket_info(name_event, username="reseller"):
 
         return ticket_price, ticket_remaining, None
 
+def purchase_ticket(username, name_event, ticket_purchase):
+    """
+    Make a transaction to purchase event's seats from the buyer's side.
+    :param username: Name of the buyer user
+    :param name_event: Event's name
+    :param seats_purchase: Number of ticket to purchase
+    :return: None if there aren't error or a string error.
+    """
+    config = configparser.ConfigParser()  # Use to access to the config file
+    config.read('config.ini')
+
+    try:
+        w3 = Web3(Web3.HTTPProvider(config[username]["address_node"]))
+    except Exception as e:
+        error = e
+        return None, error
+
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+    if w3.isConnected():
+        print("Connected to the blockchain.")
+        w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
+
+        address_event, abi_event = get_address_abi(name_event, "ticket_office")
+        ticket_office = w3.eth.contract(address=address_event, abi=abi_event)
+
+        # Submit the transaction that deploys the contract
+        first_account = w3.eth.accounts[0]
+        nonce = w3.eth.getTransactionCount(Web3.toChecksumAddress(first_account))
+        transaction = {
+            'from': first_account,
+            'nonce': nonce,
+            'gas': 2000000,
+            'gasPrice': 0
+        }
+
+        try:
+            # Send the transaction.
+            tx_hash = ticket_office.functions.purchaseTicket(ticket_purchase).transact(transaction)
+            tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+            print("Transaction Completed.")
+        except Exception as e:
+            return e
+
+        return None

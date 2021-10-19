@@ -405,7 +405,7 @@ def purchase_seats_event(event_name):
     if error_purchase is None:
         address_event, abi = blockchain_manager.get_address_abi(event_name, "event")
 
-        dict_ticket, error_ticket = blockchain_manager.deploy_ticket(event_name, address_event, new_ticket_price)
+        dict_ticket, error_ticket = blockchain_manager.deploy_ticket(event_name, address_event, new_ticket_price, seats_purchase)
 
         if error_ticket is None:
             return render_template('single_event_seats.html', mode=mode, error='Seats purchased successfully.',
@@ -481,19 +481,20 @@ def single_event_tickets(event_name):
     except:
         x = [None, None]
 
-    available_tickets = blockchain_manager.get_reseller_tickets_for_event(event_name)
+    total_tickets = blockchain_manager.get_reseller_tickets_for_event(event_name)
     ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_info(event_name)
+    tickets_sold = total_tickets - ticket_remaining
 
     mode = "show"
 
     if e is None:
         return render_template('single_event_seats.html', mode=mode, event_name=event_name, event_date=x[0], event_hours=x[1], available_seats=available_seats,
-                           available_tickets=available_tickets, ticket_price=ticket_p, event_artist=artist,
+                           available_tickets=ticket_remaining, ticket_price=ticket_p, tickets_sold=tickets_sold, event_artist=artist,
                            event_location=location, event_description=description, error="")
     else:
         return render_template('single_event_seats.html', mode=mode, event_name=event_name, event_date=x[0],
                                event_hours=x[1], available_seats=available_seats,
-                               available_tickets=available_tickets, ticket_price=ticket_p, event_artist=artist,
+                               available_tickets=ticket_remaining, ticket_price=ticket_p, event_artist=artist,
                                event_location=location, event_description=description, error=e)
 
 # Show the event list for the buyer
@@ -555,20 +556,74 @@ def event_info(event_name):
     except:
         x = [None, None]
 
-    available_tickets = blockchain_manager.get_reseller_tickets_for_event(event_name)
+    #available_tickets = blockchain_manager.get_reseller_tickets_for_event(event_name)
     ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_info(event_name)
 
     if e is None:
         return render_template('event_info.html', event_name=event_name, event_date=x[0],
-                               event_hours=x[1], available_seats=available_seats,
-                               available_tickets=available_tickets, seats_price=ticket_p, event_artist=artist,
+                               event_hours=x[1],
+                               available_tickets=ticket_remaining, tickets_price=ticket_p, event_artist=artist,
                                event_location=location, event_description=description, error="")
     else:
         return render_template('event_info.html', event_name=event_name, event_date=x[0],
-                               event_hours=x[1], available_seats=available_seats,
-                               available_tickets=available_tickets, seats_price=ticket_p, event_artist=artist,
+                               event_hours=x[1],
+                               available_tickets=ticket_remaining, seats_price=ticket_p, event_artist=artist,
                                event_location=location, event_description=description, error=e)
 
+@app.route("/purchase_tickets_event/<event_name>", methods=['POST'])
+def purchase_tickets_event(event_name):
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'buyer':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
+
+    try:
+        date, available_seats, seats_price, artist, location, description, e = blockchain_manager.get_event_information(
+            session['user'], event_name)
+
+        #available_tickets = blockchain_manager.get_reseller_tickets_for_event(event_name)
+        ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_info(event_name)
+
+    except:
+        return redirect(url_for('reseller', messages='Network is offline, please try again in another moment...'))
+
+    tickets_purchase = int(escape(request.form['input_tickets']))
+
+    try:
+        x = date.split("+")
+    except:
+        x = [None, None]
+
+    if tickets_purchase <= 0:
+        return render_template('event_info.html', error='Insert an integer value greater then 0.',
+                               event_name=event_name, event_date=x[0], event_hours=x[1],
+                               available_tickets=ticket_remaining, tickets_price=ticket_p, event_artist=artist,
+                               event_location=location, event_description=description)
+
+    diff = ticket_remaining - tickets_purchase
+
+    # Check if the difference between available seats and the value inserted by the reseller is a valid value.
+    if diff < 0:
+        return render_template('event_info.html', error='Insufficient available tickets.', event_name=event_name,
+                               event_date=x[0], event_hours=x[1], available_tickets=ticket_remaining,
+                               tickets_price=ticket_p,
+                               event_artist=artist, event_location=location, event_description=description)
+
+    # Make the "purchase"
+    error_purchase = blockchain_manager.purchase_ticket(session['user'], event_name, tickets_purchase)
+
+    if error_purchase is None:
+        ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_info(event_name)
+        return render_template('event_info.html', error='Tickets bought correctly.', event_name=event_name,
+                               event_date=x[0], event_hours=x[1], available_tickets=ticket_remaining,
+                               tickets_price=ticket_p,
+                               event_artist=artist, event_location=location, event_description=description)
+    else:
+        return render_template('event_info.html', error=error_purchase, event_name=event_name,
+                               event_date=x[0], event_hours=x[1], available_tickets=ticket_remaining,
+                               tickets_price=ticket_p,
+                               event_artist=artist, event_location=location, event_description=description)
 
 if __name__ == "__main__":
     app.config['ENV'] = 'development'

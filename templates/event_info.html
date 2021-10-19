@@ -71,18 +71,18 @@
         <h1>Event Informations</h1>
         <div class="container">
             <p class="lead" style="color:red;font-weight: bold;text-align: center;">{{error}}</p>
-            <label> <b>Event name:</b></label> <h2>{{event_name}} </h2>
-            <label><b>Event date:</b></label> <h2>{{event_date}} </h2>
-            <label><b>Event hours:</b></label> <h2>{{event_hours}} </h2>
+            <label> <b>Event name:</b></label> <h2>{{event_name}}</h2>
+            <label><b>Event date:</b></label> <h2>{{event_date}}</h2>
+            <label><b>Event hours:</b></label> <h2>{{event_hours}}</h2>
             <label><b>Artist name:</b></label> <h2>{{event_artist}}</h2>
             <label><b>Location:</b></label> <h2>{{event_location}}</h2>
             <label><b>Description:</b></label> <h2>{{event_description}}</h2>
-            <label><b>Available seats:</b></label> <h2>{{available_tickets}} </h2>
-            <label><b>Ticket price:</b></label> <h2>{{seats_price}} € </h2>
-            <form class="form-event" action="//{{event_name}}" method="post">
+            <label><b>Available Tickets:</b></label> <h2>{{available_tickets}}</h2>
+            <label><b>Ticket price:</b></label> <h2>{{tickets_price}} €</h2>
+            <form class="form-event" action="/purchase_tickets_event/{{event_name}}" method="post">
                 <input type="hidden" name="event_name" value={{event_name}}>
-                <label for="input_seats" class="form-control"><b>Seats to buy:</b></label>
-                <input autocomplete="off" class="form-control" step="0" name="input_seats" id="input_seats" placeholder="Seats" type="number" required>
+                <label for="input_tickets" class="form-control"><b>Tickets to buy:</b></label>
+                <input autocomplete="off" class="form-control" step="0" name="input_tickets" id="input_tickets" placeholder="Tickets" type="number" required>
                     <p align="center">
                         <button id="btnSignIn" class="btn btn-lg btn-success" type="submit">Buy Ticket</button>
                         <a href="/back"><button class="backbtn" type="button">Back</button></a>
