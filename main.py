@@ -405,7 +405,8 @@ def purchase_seats_event(event_name):
     if error_purchase is None:
         address_event, abi = blockchain_manager.get_address_abi(event_name, "event")
 
-        dict_ticket, error_ticket = blockchain_manager.deploy_ticket(event_name, address_event, new_ticket_price, seats_purchase)
+        dict_ticket, error_ticket = blockchain_manager.deploy_ticket(event_name, address_event,
+                                                                     new_ticket_price, seats_purchase)
 
         if error_ticket is None:
             return render_template('single_event_seats.html', mode=mode, error='Seats purchased successfully.',
@@ -420,8 +421,8 @@ def purchase_seats_event(event_name):
                                    event_artist=artist, event_location=location, event_description=description)
 
     else:
-        return render_template('single_event_seats.html', mode=mode, error=error_purchase, event_name=event_name, event_date=x[0],
-                               event_hours=x[1], event_seats=available_seats, ticket_price=ticket_price,
+        return render_template('single_event_seats.html', mode=mode, error=error_purchase, event_name=event_name,
+                               event_date=x[0], event_hours=x[1], event_seats=available_seats, ticket_price=ticket_price,
                                event_artist=artist, event_location=location, event_description=description)
 
 
@@ -439,11 +440,10 @@ def show_events_purchased_reseller():
 
     try:
         list_event_names, error = blockchain_manager.get_reseller_events()
-        #print(len(list_event_names))
     except Exception as e:
         render_template('show_events.html', error=e)
 
-    if (len(list_event_names) == 0):
+    if len(list_event_names) == 0:
         return render_template('show_events.html', mode=mode, event_names=list_event_names,
                                error='No seats have been purchased.')
 
@@ -488,14 +488,16 @@ def single_event_tickets(event_name):
     mode = "show"
 
     if e is None:
-        return render_template('single_event_seats.html', mode=mode, event_name=event_name, event_date=x[0], event_hours=x[1], available_seats=available_seats,
-                           available_tickets=ticket_remaining, ticket_price=ticket_p, tickets_sold=tickets_sold, event_artist=artist,
-                           event_location=location, event_description=description, error="")
+        return render_template('single_event_seats.html', mode=mode, event_name=event_name, event_date=x[0],
+                               event_hours=x[1], available_seats=available_seats, available_tickets=ticket_remaining,
+                               ticket_price=ticket_p, tickets_sold=tickets_sold, event_artist=artist,
+                               event_location=location, event_description=description, error="")
     else:
         return render_template('single_event_seats.html', mode=mode, event_name=event_name, event_date=x[0],
                                event_hours=x[1], available_seats=available_seats,
                                available_tickets=ticket_remaining, ticket_price=ticket_p, event_artist=artist,
                                event_location=location, event_description=description, error=e)
+
 
 # Show the event list for the buyer
 @app.route("/show_events_buyer")
@@ -528,6 +530,7 @@ def show_events_buyer():
 
     return render_template('show_events_buyer.html', event_names=list_event_names)
 
+
 # Show the information page for buying the ticket (buyer)
 @app.route("/event_info")
 @app.route("/event_info/<event_name>")
@@ -555,7 +558,6 @@ def event_info(event_name):
         x = date.split("+")
     except:
         x = [None, None]
-
 
     ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name)
 
@@ -611,8 +613,9 @@ def purchase_tickets_event(event_name):
             if error_info is None:
                 return render_template('ticket_info.html', event_name=event_name,
                                        event_date=x[0], event_hours=x[1], available_tickets=ticket_remaining,
-                                       tickets_price=ticket_p, ticket_id=ticket_id, state=ticket_state, seal=ticket_seal, timestamp=ticket_date,
-                                       event_artist=artist, event_location=location, event_description=description)
+                                       tickets_price=ticket_p, ticket_id=ticket_id, state=ticket_state,
+                                       seal=ticket_seal, timestamp=ticket_date, event_artist=artist,
+                                       event_location=location, event_description=description)
             else:
                 return render_template('ticket_info.html', error='Purchased correctly but error into getting info '
                                                                  'about ticket: ' + error_info, event_name=event_name,
@@ -625,7 +628,8 @@ def purchase_tickets_event(event_name):
                                    tickets_price=ticket_p,
                                    event_artist=artist, event_location=location, event_description=description)
     else:
-        return render_template('event_info.html', error='Purchase already made. You can\'t purchase more than one ticket.',
+        return render_template('event_info.html', error='Purchase already made. You can\'t purchase more '
+                                                        'than one ticket.',
                                event_name=event_name, event_date=x[0], event_hours=x[1],
                                available_tickets=ticket_remaining, tickets_price=ticket_p,
                                event_artist=artist, event_location=location, event_description=description)
