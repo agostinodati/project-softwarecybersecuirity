@@ -77,7 +77,8 @@ contract Event {
   }
 
   function setAvailableSeats(uint256 seats) public {
-    require(seats >= 0, "Insufficient available seats!");
+    if (seats < 0) revert();
+
     availableSeats = seats;
     initialAvailableSeats = seats;
   }
@@ -108,7 +109,7 @@ contract Event {
 
   function purchaseSeats(uint256 seatsPurchased) public {
     uint256 remainder = getAvailableSeats() - seatsPurchased;
-    require(remainder >= 0, "Insufficient available seats!");
+    if(remainder < 0) revert();
 
     // Check if the address exists in the map... Prove the validity of this method!
     if (resellerSeatsList[msg.sender] != uint256(0x0)){

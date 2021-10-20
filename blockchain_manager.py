@@ -8,7 +8,8 @@ import configparser
 import numpy as np
 from os.path import isfile
 import json
-import datetime
+from datetime import datetime
+from hashlib import sha256
 
 
 sc_new_event = './smart_contracts/Event.sol'
@@ -442,7 +443,7 @@ def get_reseller_tickets_for_event(event_name, username="reseller"):
         return seats_reseller, None
 
 
-def get_ticket_info(name_event, username="reseller"):
+def get_ticket_office_info(name_event, username="reseller"):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
@@ -468,17 +469,13 @@ def get_ticket_info(name_event, username="reseller"):
 
         return ticket_price, ticket_remaining, None
 
-def purchase_ticket(username, name_event, ticket_purchase):
-    """
-    Make a transaction to purchase event's seats from the buyer's side.
-    :param username: Name of the buyer user
-    :param name_event: Event's name
-    :param seats_purchase: Number of ticket to purchase
-    :return: None if there aren't error or a string error.
-    """
+
+def purchase_ticket(name_event, username="buyer"):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
+    timestamp = datetime.now()
+    timestamp = timestamp.strftime("%d/%m/%Y %H:%M:%S")
     try:
         w3 = Web3(Web3.HTTPProvider(config[username]["address_node"]))
     except Exception as e:
@@ -490,9 +487,9 @@ def purchase_ticket(username, name_event, ticket_purchase):
     if w3.isConnected():
         print("Connected to the blockchain.")
         w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
-
-        address_event, abi_event = get_address_abi(name_event, "ticket_office")
-        ticket_office = w3.eth.contract(address=address_event, abi=abi_event)
+        address_buyer = w3.eth.accounts[0]
+        address_ticket, abi_ticket = get_address_abi(name_event, "ticket_office")
+        ticket_office = w3.eth.contract(address=address_ticket, abi=abi_ticket)
 
         # Submit the transaction that deploys the contract
         first_account = w3.eth.accounts[0]
@@ -504,12 +501,83 @@ def purchase_ticket(username, name_event, ticket_purchase):
             'gasPrice': 0
         }
 
+        seal = sealer(address_buyer, address_ticket, timestamp)
+
         try:
             # Send the transaction.
-            tx_hash = ticket_office.functions.purchaseTicket(ticket_purchase).transact(transaction)
+            tx_hash = ticket_office.functions.purchaseTicket(address_buyer, seal, timestamp).transact(transaction)
             tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+
+            ticket_id = ticket_office.functions.getTicketIdByAddressBuyer(address_buyer).call()
             print("Transaction Completed.")
         except Exception as e:
-            return e
+            return None, e
 
-        return None
+        return ticket_id, None
+
+
+def get_ticket_info(name_event, ticket_id, username="buyer"):
+    config = configparser.ConfigParser()  # Use to access to the config file
+    config.read('config.ini')
+
+    try:
+        w3 = Web3(Web3.HTTPProvider(config[username]["address_node"]))
+    except Exception as e:
+        return None, None, e
+
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+    if w3.isConnected():
+        print("Connected to the blockchain.")
+        w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
+
+        address_event, abi_event = get_address_abi(name_event, "ticket_office")
+        ticket_office = w3.eth.contract(address=address_event, abi=abi_event)
+
+        try:
+            ticket_state = ticket_office.functions.getState(ticket_id).call()
+            ticket_seal = ticket_office.functions.getSeal(ticket_id).call()
+            ticket_date = ticket_office.functions.getPurchaseTimestamp(ticket_id).call()
+        except Exception as e:
+            return None, None, None, e
+
+        return ticket_state, ticket_seal, ticket_date, None
+
+
+def has_ticket(name_event, username="buyer"):
+    config = configparser.ConfigParser()  # Use to access to the config file
+    config.read('config.ini')
+
+    try:
+        w3 = Web3(Web3.HTTPProvider(config[username]["address_node"]))
+    except Exception as e:
+        return None, None, e
+
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+    if w3.isConnected():
+        print("Connected to the blockchain.")
+        w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
+        buyer_address = w3.eth.accounts[0]
+
+        address_event, abi_event = get_address_abi(name_event, "ticket_office")
+        ticket_office = w3.eth.contract(address=address_event, abi=abi_event)
+
+        try:
+            ticket_id = ticket_office.functions.getTicketIdByAddressBuyer(buyer_address)
+        except Exception as e:
+            return None, e
+
+        ticket_already_purchased = True
+
+        if ticket_id == 0:
+            ticket_already_purchased = False
+
+        return ticket_already_purchased, None
+
+
+def sealer(address_buyer, address_ticket, timestamp):
+    seal = str(address_buyer) + str(address_ticket) + str(timestamp)
+    hash_seal = sha256(seal.encode('utf-8')).hexdigest()
+    print(hash_seal)
+    return hash_seal

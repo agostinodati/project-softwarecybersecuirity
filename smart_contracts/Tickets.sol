@@ -32,20 +32,13 @@ contract TicketOffice {
         Event eventPurchased = Event(eventAdr);
         ticketCounter = 1;
         setResellerAdd(reseller);
-        //resellerAddress = reseller;
         setEventAdd(eventAdr);
-        //eventAddress = eventAdr;
-
-        //totalTickets = eventPurchased.getReseller_seats(reseller);
-        //remainingTickets = eventPurchased.getAvailableSeats();
-
+        setTotalTickets(seats_purchase);
         setRemainingTickets(seats_purchase);
-        //ticketsPrice = price;
         setTicketsPrice(price);
     }
 
-    function createTicket(address buyer, string memory seal,
-        string memory timestamp) public returns(uint256) {
+    function purchaseTicket(address buyer, string memory seal, string memory timestamp) public {
         if (getRemainingTickets() == 0) revert();
 
         Event eventPurchased = Event(eventAddress);
@@ -67,8 +60,6 @@ contract TicketOffice {
         remainingTickets = remainingTickets - 1;
 
         buyersTickets[buyer] = id;
-
-        return id;
     }
 
     function setResellerAdd(address reseller) public {
@@ -96,7 +87,6 @@ contract TicketOffice {
     }
 
     function getTicketIdByAddressBuyer(address buyerAddress) public view returns (uint256) {
-        // Search in the map the ticket id of the buyer.
         uint256 ticketId;
         if (buyersTickets[buyerAddress] != uint256(0x0)){
             ticketId = buyersTickets[buyerAddress];
@@ -108,13 +98,30 @@ contract TicketOffice {
     }
 
     function getOwner(uint256 ticketId) public view returns (address) {
-        // Returns the address of the owner of the given ticket id.
-        return tickets[ticketId].buyerAddress;
+        uint256 id = ticketId-1;
+        return tickets[id].buyerAddress;
     }
 
-    function getState(uint256 ticketId) public view returns (ticketStates) {
-        // Get the state of the ticket.
-        return tickets[ticketId].ticketState;
+    function getState(uint256 ticketId) public view returns (string memory) {
+        uint256 id = ticketId-1;
+        ticketStates currentState = tickets[id].ticketState;
+        string memory state;
+
+        if (currentState==ticketStates.valid) state = "valid";
+        if (currentState==ticketStates.cancelled) state = "cancelled";
+        if (currentState==ticketStates.obliterated) state = "obliterated";
+
+        return state;
+    }
+
+    function getSeal(uint256 ticketId) public view returns (string memory) {
+        uint256 id = ticketId-1;
+        return tickets[id].ticketSeal;
+    }
+
+    function getPurchaseTimestamp(uint256 ticketId) public view returns (string memory) {
+        uint256 id = ticketId-1;
+        return tickets[id].ticketTimestamp;
     }
 
     function getRemainingTickets() public view returns (uint256) {
@@ -122,27 +129,23 @@ contract TicketOffice {
         return remainingTickets;
     }
 
+    function setTotalTickets(uint256 tickets) public {
+        if (tickets <= 0) revert();
+        totalTickets = tickets;
+    }
+
     function setRemainingTickets(uint256 tickets) public {
-        require(tickets >= 0, "Insufficient available tickets!");
+        if (tickets <= 0) revert();
         remainingTickets = tickets;
-  }
+    }
+
+    function modifyTicketNumber(uint256 tickets) public {
+        if (tickets <= 0) revert();
+        totalTickets = totalTickets + tickets;
+        remainingTickets = remainingTickets + tickets;
+    }
 
     function getBuyer_seats(address buyer) view public returns (uint256){
         return buyersTickets[buyer];
-    }
-
-    function purchaseTicket(uint256 ticketPurchased) public {
-        uint256 ticketLeft = getRemainingTickets() - ticketPurchased;
-        require(ticketLeft >= 0, "Insufficient available ticket!");
-
-        // Check if the address exists in the map... Prove the validity of this method!
-        if (buyersTickets[msg.sender] != uint256(0x0)){
-          uint256 actual_value = buyersTickets[msg.sender];
-          buyersTickets[msg.sender] = actual_value + uint256(ticketPurchased);
-        }
-        else{
-          buyersTickets[msg.sender] = uint256(ticketPurchased);
-        }
-        setRemainingTickets(uint256(ticketLeft));
     }
 }
