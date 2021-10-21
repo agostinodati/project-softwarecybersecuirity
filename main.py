@@ -412,17 +412,17 @@ def purchase_seats_event(event_name):
             return render_template('single_event_seats.html', mode=mode, error='Seats purchased successfully.',
                                    event_name=event_name,
                                    event_date=x[0], event_hours=x[1], event_seats=available_seats,
-                                   seats_price=new_ticket_price,
+                                   seats_price=seats_price,
                                    event_artist=artist, event_location=location, event_description=description)
         else:
             return render_template('single_event_seats.html', mode=mode, error=error_ticket, event_name=event_name,
                                    event_date=x[0],
-                                   event_hours=x[1], event_seats=available_seats, seats_price=ticket_price,
+                                   event_hours=x[1], event_seats=available_seats, seats_price=seats_price,
                                    event_artist=artist, event_location=location, event_description=description)
 
     else:
         return render_template('single_event_seats.html', mode=mode, error=error_purchase, event_name=event_name,
-                               event_date=x[0], event_hours=x[1], event_seats=available_seats, seats_price=ticket_price,
+                               event_date=x[0], event_hours=x[1], event_seats=available_seats, seats_price=seats_price,
                                event_artist=artist, event_location=location, event_description=description)
 
 
