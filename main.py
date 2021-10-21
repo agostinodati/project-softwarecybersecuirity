@@ -441,11 +441,10 @@ def show_events_purchased_reseller():
     try:
         list_event_names, error = blockchain_manager.get_reseller_events()
     except Exception as e:
+        if len(list_event_names) == 0:
+            return render_template('show_events.html', mode=mode, event_names=list_event_names,
+                                   error='No seats have been purchased.')
         render_template('show_events.html', error=e)
-
-    if len(list_event_names) == 0:
-        return render_template('show_events.html', mode=mode, event_names=list_event_names,
-                               error='No seats have been purchased.')
 
     if error is None:
         return render_template('show_events.html', mode=mode, event_names=list_event_names)
