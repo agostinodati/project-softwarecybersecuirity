@@ -601,13 +601,14 @@ def purchase_tickets_event(event_name):
                                event_artist=artist, event_location=location, event_description=description)
 
     # Check if the buyer already purchased a ticket for the event
-    ticket_already_purchased = blockchain_manager.has_ticket(event_name)
+    ticket_already_purchased, err = blockchain_manager.has_ticket(event_name)
 
     # Make the purchase
-    ticket_id, error_purchase = blockchain_manager.purchase_ticket(event_name, session['user'])
-    ticket_state, ticket_seal, ticket_date, error_info = blockchain_manager.get_ticket_info(event_name, ticket_id,
-                                                                                            session['user'])
+
     if ticket_already_purchased is False:
+        ticket_id, error_purchase = blockchain_manager.purchase_ticket(event_name, session['user'])
+        ticket_state, ticket_seal, ticket_date, error_info = blockchain_manager.get_ticket_info(event_name, ticket_id,
+                                                                                                session['user'])
         if error_purchase is None:
             ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name)
             if error_info is None:

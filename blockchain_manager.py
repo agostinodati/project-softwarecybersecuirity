@@ -564,7 +564,7 @@ def has_ticket(name_event, username="buyer"):
         ticket_office = w3.eth.contract(address=address_event, abi=abi_event)
 
         try:
-            ticket_id = ticket_office.functions.getTicketIdByAddressBuyer(buyer_address)
+            ticket_id = ticket_office.functions.getTicketIdByAddressBuyer(buyer_address).call()
         except Exception as e:
             return None, e
 
