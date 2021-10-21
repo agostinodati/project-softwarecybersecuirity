@@ -601,7 +601,7 @@ def purchase_tickets_event(event_name):
                                event_artist=artist, event_location=location, event_description=description)
 
     # Check if the buyer already purchased a ticket for the event
-    ticket_already_purchased, err = blockchain_manager.has_ticket(event_name)
+    ticket_already_purchased, ticket_id, err = blockchain_manager.has_ticket(event_name)
 
     # Make the purchase
 
@@ -634,6 +634,78 @@ def purchase_tickets_event(event_name):
                                event_name=event_name, event_date=x[0], event_hours=x[1],
                                available_tickets=ticket_remaining, tickets_price=ticket_p,
                                event_artist=artist, event_location=location, event_description=description)
+
+
+@app.route("/show_tickets_list")
+def show_tickets_list():
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'buyer':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
+
+    list_tickets = []
+    list_event_names = []
+
+    try:
+        event_dict = blockchain_manager.get_smart_contracts_dict("ticket_office")
+        if not event_dict:
+            event_dict = blockchain_manager.get_smart_contracts_dict("ticket_office")
+            event_dict = event_dict.keys()
+        for key in event_dict:
+            list_event_names.append(key)
+    except Exception as e:
+        return render_template('show_tickets_buyer.html', error=e)
+
+    for event in list_event_names:
+        purchased, ticket_id, err = blockchain_manager.has_ticket(event)
+        if purchased:
+            list_tickets.append(event)
+
+    if len(list_event_names) == 0:
+        return render_template('show_tickets_list.html', error='There are no tickets purchased.')
+
+    return render_template('show_tickets_list.html', event_names=list_tickets)
+
+
+@app.route("/show_ticket/<event_name>")
+def show_ticket(event_name):
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'buyer':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
+    try:
+        date, available_seats, seats_price, artist, location, description, e = blockchain_manager.get_event_information(
+            session['user'], event_name)
+
+        ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name)
+    except Exception as e:
+        return redirect(url_for('reseller', messages='Network is offline, please try again in another moment...' + e))
+
+    try:
+        x = date.split("+")
+    except Exception as e:
+        x = [None, None]
+
+    purchased, ticket_id, err = blockchain_manager.has_ticket(event_name)
+    ticket_state, ticket_seal, ticket_date, error_info = blockchain_manager.get_ticket_info(event_name, ticket_id,
+                                                                                            session['user'])
+
+    if err is None:
+        if error_info is None:
+            return render_template('ticket_info.html', event_name=event_name,
+                                   event_date=x[0], event_hours=x[1], available_tickets=ticket_remaining,
+                                   tickets_price=ticket_p, ticket_id=ticket_id, state=ticket_state,
+                                   seal=ticket_seal, timestamp=ticket_date, event_artist=artist,
+                                   event_location=location, event_description=description)
+        else:
+            return render_template('ticket_info.html', error=error_info, event_name=event_name,
+                                   event_date=x[0], event_hours=x[1], available_tickets=ticket_remaining,
+                                   tickets_price=ticket_p,
+                                   event_artist=artist, event_location=location, event_description=description)
+    else:
+        return render_template('buyer.html', error=err)
 
 
 if __name__ == "__main__":

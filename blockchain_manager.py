@@ -573,7 +573,7 @@ def has_ticket(name_event, username="buyer"):
         if ticket_id == 0:
             ticket_already_purchased = False
 
-        return ticket_already_purchased, None
+        return ticket_already_purchased, ticket_id, None
 
 
 def sealer(address_buyer, address_ticket, timestamp):
