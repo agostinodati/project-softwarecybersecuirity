@@ -393,7 +393,7 @@ def get_reseller_events(username="reseller"):
         reseller_events = []
 
         for event_name in list_event_names:
-            address_event, abi_event = get_address_abi(event_name,"event")
+            address_event, abi_event = get_address_abi(event_name, "event")
             event = w3.eth.contract(address=address_event, abi=abi_event)
 
             try:
