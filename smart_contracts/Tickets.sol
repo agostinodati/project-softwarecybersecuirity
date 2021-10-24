@@ -164,4 +164,8 @@ contract TicketOffice {
         uint256 ticketId = id -1;
         tickets[ticketId].ticketState = ticketStates.obliterated;
     }
+
+    function getTicketCounter() view public returns (uint256){
+        return ticketCounter;
+    }
 }

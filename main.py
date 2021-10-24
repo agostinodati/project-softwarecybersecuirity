@@ -354,6 +354,8 @@ def single_event_seats(event_name):
         if event_state == "available":
             if date_datetime <= datetime.date.today():
                 blockchain_manager.set_event_state(event_name, "expired")
+                blockchain_manager.set_tickets_state(event_name, "expired")
+
                 return render_template('single_event_seats.html', mode="show", error="Event expired.",
                                        event_hours=x[1], event_date=x[0], event_artist=artist, event_name=event_name,
                                        event_seats=available_seats, seats_price=seats_price,
@@ -479,7 +481,6 @@ def purchase_seats_event(event_name):
                             event_name=event_name, event_date=x[0],
                             event_hours=x[1], event_seats=available_seats, seats_price=seats_price,
                             event_artist=artist, event_location=location, event_description=description)
-
 
 
 # Show all events purchased for reseller

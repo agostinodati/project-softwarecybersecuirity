@@ -728,6 +728,82 @@ def set_ticket_state(name_event, state, username="reseller"):
         return None
 
 
+def get_ticket_office_counter(name_event, username="reseller"):
+    config = configparser.ConfigParser()  # Use to access to the config file
+    config.read('config.ini')
+
+    try:
+        w3 = Web3(Web3.HTTPProvider(config[username]["address_node"]))
+    except Exception as e:
+        return None, None, e
+
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+    if w3.isConnected():
+        print("Connected to the blockchain.")
+        w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
+        buyer_address = w3.eth.accounts[0]
+
+        address_event, abi_event = get_address_abi(name_event, "ticket_office")
+        ticket_office = w3.eth.contract(address=address_event, abi=abi_event)
+
+        try:
+            counter = ticket_office.functions.getTicketCounter().call()
+        except Exception as e:
+            return None, e
+
+        return counter, None
+
+
+def set_tickets_state(event_name, state, username="reseller"):
+    config = configparser.ConfigParser()  # Use to access to the config file
+    config.read('config.ini')
+
+    try:
+        w3 = Web3(Web3.HTTPProvider(config[username]["address_node"]))
+    except Exception as e:
+        return None, None, e
+
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+    if w3.isConnected():
+        print("Connected to the blockchain.")
+
+        try:
+            address_ticket_office, abi_ticket_office = get_address_abi(event_name, "ticket_office")
+        except:
+            return None
+
+        w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
+        address_reseller = w3.eth.accounts[0]
+
+        first_account = w3.eth.accounts[0]
+        nonce = w3.eth.getTransactionCount(Web3.toChecksumAddress(first_account))
+        transaction = {
+            'from': first_account,
+            'nonce': nonce,
+            'gas': 2000000,
+            'gasPrice': 0
+        }
+
+        ticket_office = w3.eth.contract(address=address_ticket_office, abi=abi_ticket_office)
+
+        counter = get_ticket_office_counter(event_name)
+
+        try:
+            for id in counter:
+                if state == "valid":
+                    ticket_office.functions.setValidState(id).transaction(transaction)
+                elif state == "cancelled":
+                    ticket_office.functions.setCancelledState(id).transaction(transaction)
+                elif state == "obliterated":
+                    ticket_office.fucntion.setObliteratedState(id).transaction(transaction)
+        except Exception as e:
+            return e
+
+        return None
+
+
 def sealer(address_buyer, address_ticket, timestamp):
     seal = str(address_buyer) + str(address_ticket) + str(timestamp)
     hash_seal = sha256(seal.encode('utf-8')).hexdigest()
