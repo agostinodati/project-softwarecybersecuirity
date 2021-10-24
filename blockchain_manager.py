@@ -798,7 +798,9 @@ def set_tickets_state(event_name, state, username="reseller"):
                     ticket_office.functions.setCancelledState(id).transaction(transaction)
                 elif state == "obliterated":
                     ticket_office.fucntion.setObliteratedState(id).transaction(transaction)
+            print("Tickets state changed.")
         except Exception as e:
+            print("Tickets state didn't change.")
             return e
 
         return None
