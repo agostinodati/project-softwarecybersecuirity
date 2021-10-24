@@ -330,8 +330,6 @@ def deploy_ticket(event_name, address_event, ticket_price, seats_purchase, usern
                                                                    address_ticket_office, abi_str,
                                                                    ticket_smart_contract_local)
 
-        #print(ticket_smart_contracts_dict)
-
         global ticket_smart_contracts_dict_global
         ticket_smart_contracts_dict_global = ticket_smart_contracts_dict.copy()
 
@@ -651,7 +649,7 @@ def set_event_state(name_event, state, username="reseller"):
         w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
 
         address_ticket, abi_ticket = get_address_abi(name_event, "event")
-        ticket_office = w3.eth.contract(address=address_ticket, abi=abi_ticket)
+        event = w3.eth.contract(address=address_ticket, abi=abi_ticket)
 
         # Submit the transaction that deploys the contract
         first_account = w3.eth.accounts[0]
@@ -666,11 +664,59 @@ def set_event_state(name_event, state, username="reseller"):
         try:
             # Send the transaction.
             if state == "expired":
-                tx_hash = ticket_office.setExpiredState().transact(transaction)
+                tx_hash = event.setExpiredState().transact(transaction)
+            elif state == "cancelled":
+                tx_hash = event.setCancelledState().transact(transaction)
+            elif state == "available":
+                tx_hash = event.setAvailableState().transact(transaction)
+            else:
+                return "State not valid. Valid states: expired, cancelled, available."
+
+            tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+            print("Transaction Completed.")
+        except Exception as e:
+            return e
+
+        return None
+
+
+def set_ticket_state(name_event, state, username="reseller"):
+    config = configparser.ConfigParser()  # Use to access to the config file
+    config.read('config.ini')
+
+    try:
+        w3 = Web3(Web3.HTTPProvider(config[username]["address_node"]))
+    except Exception as e:
+        error = e
+        return None, error
+
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
+    if w3.isConnected():
+        print("Connected to the blockchain.")
+        w3.eth.defaultAccount = w3.eth.accounts[0]  # Set the sender
+
+        address_ticket, abi_ticket = get_address_abi(name_event, "ticket_office")
+        ticket_office = w3.eth.contract(address=address_ticket, abi=abi_ticket)
+
+        # Submit the transaction that deploys the contract
+        first_account = w3.eth.accounts[0]
+        nonce = w3.eth.getTransactionCount(Web3.toChecksumAddress(first_account))
+        transaction = {
+            'from': first_account,
+            'nonce': nonce,
+            'gas': 2000000,
+            'gasPrice': 0
+        }
+
+        try:
+            # Send the transaction.
+            if state == "valid":
+                tx_hash = ticket_office.setValidState().transact(transaction)
             elif state == "cancelled":
                 tx_hash = ticket_office.setCancelledState().transact(transaction)
-            elif state == "available":
-                tx_hash = ticket_office.setAvailableState().transact(transaction)
+            elif state == "obliterated":
+                tx_hash = ticket_office.setObliteratedState().transact(transaction)
             else:
                 return "State not valid. Valid states: expired, cancelled, available."
 
