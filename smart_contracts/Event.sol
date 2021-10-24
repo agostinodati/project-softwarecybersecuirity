@@ -99,13 +99,30 @@ contract Event {
     state = eventStates.expired;
   }
 
-  function getState() view public returns (eventStates) {
-    return state;
+  function getState() view public returns (string memory) {
+    string memory state_str;
+    if (state==eventStates.cancelled) state_str = "cancelled";
+    if (state==eventStates.expired) state_str = "expired";
+    if (state==eventStates.available) state_str = "available";
+    return state_str;
   }
 
   function getReseller_seats(address reseller) view public returns (uint256){
    return resellerSeatsList[reseller];
   }
+
+
+  function hasPurchased(address buyerReseller) public view returns (uint256) {
+    uint256 seats;
+    if (resellerSeatsList[buyerReseller] != uint256(0x0)){
+      seats = resellerSeatsList[buyerReseller];
+    }
+    else{
+      seats = 0;
+    }
+    return seats;
+  }
+
 
   function purchaseSeats(uint256 seatsPurchased) public {
     uint256 remainder = getAvailableSeats() - seatsPurchased;
