@@ -149,4 +149,19 @@ contract TicketOffice {
     function getBuyer_seats(address buyer) view public returns (uint256){
         return buyersTickets[buyer];
     }
+
+    function setValidState(uint256 id) public {
+        uint256 ticketId = id -1;
+        tickets[ticketId].ticketState = ticketStates.valid;
+    }
+
+    function setCancelledState(uint256 id) public {
+        uint256 ticketId = id -1;
+        tickets[ticketId].ticketState = ticketStates.cancelled;
+    }
+
+    function setObliteratedState(uint256 id) public {
+        uint256 ticketId = id -1;
+        tickets[ticketId].ticketState = ticketStates.obliterated;
+    }
 }
