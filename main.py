@@ -222,7 +222,15 @@ def event_create():
 
     # Check the output of deploy_smart_contract_new_event()
     if smart_contract_name is not None and error == 'No error':
-        return render_template('event_manager.html', error='The event /"' + smart_contract_name + '/" add correctly.')
+
+        try:
+            x = date_event_str.split("+")
+        except:
+            x = [None, None]
+
+        return render_template('event_info_manager.html', error='The event "' + smart_contract_name + '" was added correctly.', event_name=name_event, event_date=x[0], event_hours=x[1],
+                           event_seats=seats_event, seats_price=seats_price, event_artist=artist_event,
+                           event_location=location_event, event_description=description_event)
     else:
         return render_template('event_creation.html', error=error)
 

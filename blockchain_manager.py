@@ -11,14 +11,29 @@ import json
 from datetime import datetime
 from hashlib import sha256
 
+from cryptography.fernet import Fernet
+import ast
 
 sc_new_event = './smart_contracts/Event.sol'
 sc_ticket = './smart_contracts/Tickets.sol'
 smart_contract_local = './smart_contracts/address_dict.npy'
 ticket_smart_contract_local = './smart_contracts/ticket_address_dict.npy'
 
+key_path = './smart_contracts/key.key'
+
 ticket_smart_contracts_dict_global = {}
 smart_contracts_dict_global = {}
+
+def write_key():
+    #generate the key and save it
+    if isfile(key_path) is False:
+        key = Fernet.generate_key()
+        with open(key_path, "wb") as key_file:
+            key_file.write(key)
+
+def load_key():
+    #load the key
+    return open(key_path, "rb").read()
 
 
 def get_smart_contracts_dict(mode):
@@ -30,11 +45,16 @@ def get_smart_contracts_dict(mode):
     #TODO: Criptare il file locale, salvare in memoria una copia del dizionario per poter avere una copia di backup nel caso il file
     #      venga perso e salvare il tutto sul db. Risolvere problema omonimi.
     dictio = {}
+
+    f = Fernet(load_key())
+
     if mode == "event":
         dictio = np.load(smart_contract_local, allow_pickle='TRUE').item()
+        dict = ast.literal_eval(f.decrypt(dictio).decode())
     elif mode == "ticket_office":
         dictio = np.load(ticket_smart_contract_local, allow_pickle='TRUE').item()
-    return dictio
+        dict = ast.literal_eval(f.decrypt(dictio).decode())
+    return dict
 
 
 def store_smart_contract_address(name_contract, address_contract, abi, smart_contract_local_path):
@@ -47,15 +67,20 @@ def store_smart_contract_address(name_contract, address_contract, abi, smart_con
     :param path: Path where to save the dict
     :return: Nothing
     """
+
+    write_key()
+
+    f = Fernet(load_key())
+
     if isfile(smart_contract_local_path):
-        read_dictionary = np.load(smart_contract_local_path, allow_pickle='TRUE').item()
+        dict = np.load(smart_contract_local_path, allow_pickle='TRUE').item()
+        read_dictionary = ast.literal_eval(f.decrypt(dict).decode())
         read_dictionary.update({name_contract: (address_contract, abi)})
     else:
         read_dictionary = {name_contract: (address_contract, abi)}
-    np.save(smart_contract_local_path, read_dictionary)
-    
-    return read_dictionary
+    np.save(smart_contract_local_path, f.encrypt(str(read_dictionary).encode()))
 
+    return read_dictionary
 
 def deploy_smart_contract_new_event(name_event, date_event, available_seats_event, ticket_price, artist_event,
                                     location_event, description_event, username):
