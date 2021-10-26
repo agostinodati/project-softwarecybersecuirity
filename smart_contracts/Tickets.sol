@@ -22,6 +22,7 @@ contract TicketOffice {
         uint ticketPrice;
         string eventDate;
         address buyerAddress;
+        string buyerName;
         string ticketSeal; // this is an hash of buyer's and event's information
         string ticketTimestamp;
         ticketStates ticketState;
@@ -39,7 +40,7 @@ contract TicketOffice {
         setTicketsPrice(price);
     }
 
-    function purchaseTicket(address buyer, string memory seal, string memory timestamp) public {
+    function purchaseTicket(address buyer,string memory buyerN, string memory seal, string memory timestamp) public {
         if (getRemainingTickets() == 0) revert();
 
         Event eventPurchased = Event(eventAddress);
@@ -51,6 +52,7 @@ contract TicketOffice {
             ticketPrice: getTicketsPrice(),
             eventDate: eventPurchased.getDate(),
             buyerAddress: buyer,
+            buyerName: buyerN,
             ticketSeal: seal,
             ticketTimestamp: timestamp,
             ticketState: ticketStates.valid
@@ -61,6 +63,10 @@ contract TicketOffice {
         remainingTickets = remainingTickets - 1;
 
         buyersTickets[buyer] = id;
+    }
+
+    function getTicketList() view public returns (Ticket [] memory){
+        return tickets;
     }
 
     function setResellerAdd(address reseller) public {

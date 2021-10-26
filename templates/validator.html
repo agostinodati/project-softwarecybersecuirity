@@ -1,15 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link href= "{{url_for('static',filename='bootstrap.min.css')}}" type="text/css" rel="stylesheet">
-  <link href= "{{url_for('static',filename='jumbotron-narrow.css')}}" type="text/css" rel="stylesheet">
-  <link href= "{{url_for('static',filename='signup.css')}}" type="text/css" rel="stylesheet">
+  <style>
+        button {
+          background-color: #04AA6D;
+          color: white;
+          padding: 14px;
+          margin: 8px;
+          border: none;
+          cursor: pointer;
+          font-family: Arial, Helvetica, sans-serif;
+          width: 80%;
+          padding: 10px 18px;
+        }
+
+        .logoutbtn {
+          width: 20%;
+          background-color: #f44336;
+        }
+
+        button:hover {
+          opacity: 0.8;
+        }
+
+        #rcorners2 {
+          border-radius: 25px;
+          border: 5px solid #04AA6D;
+          padding: 20px;
+          width: 35%;
+          margin: auto;
+          margin-top: 5%;
+        }
+
+        h1 {
+          text-align: center;
+          font-family: Arial, Helvetica, sans-serif;
+        }
+
+        p {
+          text-align: center;
+        }
+
+        .container {
+           border-radius: 25px;
+           background-color: #eee;
+           padding: 10px;
+        }
+
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
+  <div id="rcorners2" align="center">
       <h1 class="text-muted">Welcome to the Validator's page!</h1>
-    </div>
+      <div class="container">
+        <p class="lead" style="color:red;font-weight: bold;text-align: center;">{{error}}</p>
+          <a href="/show_event_validator"><button>Show event list</button></a>
+        <p align="center">
+            <a href="/logout"><button type="button" class="logoutbtn">Log Out</button></a>
+          </p>
+      </div>
   </div>
   <footer class="footer">
     <p>Progetto Software Cybersecurity</p>
