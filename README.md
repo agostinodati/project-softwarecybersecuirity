@@ -22,13 +22,13 @@
     start.cmd
     ``` 
 6. Importare il progetto nel proprio IDE ed eseguire le seguenti installazioni:
-  '''
+  ```
   pip install Flask 
   pip install mysql-connector-python 
   pip install --upgrade Pillow 
   pip install web3 
   pip install cryptography
-  '''
+  ```
 7. Eseguire il *main* e aprire l'indirizzo nella console
 
 
