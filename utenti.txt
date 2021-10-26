@@ -1,4 +1,15 @@
-event manager: id= event_man pass= event_pass
-event reseller: id= reseller pass= reseller_pass
-validator: id= validator pass= validator_pass
-buyer: id= buyer pass= buyer_pass
+event manager:
+  id= event_man
+  pass= event_pass
+
+event reseller:
+  id= reseller
+  pass= reseller_pass
+
+validator:
+  id= validator
+  pass= validator_pass
+
+buyer:
+  id= buyer
+  pass= buyer_pass
