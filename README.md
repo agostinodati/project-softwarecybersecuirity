@@ -16,11 +16,11 @@
 5. Installare quorum-wizard
   - Aprire terminale di Windows
   - Eseguire, optando per docker-compose quando richiesto:
-    '''
+    ```
     npx quorum-wizard
     cd networks/<nome_network>/
     start.cmd
-    ''' 
+    ``` 
 6. Importare il progetto nel proprio IDE ed eseguire le seguenti installazioni:
   '''
   pip install Flask 
