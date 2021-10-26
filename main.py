@@ -342,12 +342,16 @@ def single_event_seats(event_name):
     try:
         date, available_seats, seats_price, artist, location, description, e = blockchain_manager.get_event_information(
             session['user'], event_name)
+    except:
+        return redirect(url_for('reseller', messages='Network is offline, please try again in another moment...'))
+
+    try:
         total_tickets = blockchain_manager.get_reseller_tickets_for_event(event_name)
         ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name)
         tickets_sold = total_tickets - ticket_remaining
     except:
-        return redirect(url_for('reseller', messages='Network is offline, please try again in another moment...'))
-
+        ticket_remaining = available_seats
+        tickets_sold = 0
     try:
         x = date.split("+")
     except Exception as error_date:

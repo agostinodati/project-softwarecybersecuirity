@@ -80,8 +80,8 @@
         <label><b>Description:</b></label> <h2>{{event_description}}</h2>
 
         {% if mode == "purchase" %}
-        <label><b>Available seats:</b></label> <h2>{{event_seats}}</h2>
-        <label><b>Seats price:</b></label> <h2>{{seats_price}} €</h2>
+        <label><b>Available seats:</b></label> <h2>{{available_tickets}}</h2>
+        <label><b>Seats price:</b></label> <h2>{{ticket_price}} €</h2>
         <form class="form-event" action="/purchase_seats_event/{{event_name}}" method="post">
             <input type="hidden" name="event_name" value={{event_name}}>
             <label for="ticket_price" class="form-control"><b>Ticket's price:</b></label>
