@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        button {
+          background-color: #04AA6D;
+          color: white;
+          padding: 14px;
+          margin: 8px;
+          border: none;
+          cursor: pointer;
+          font-family: Arial, Helvetica, sans-serif;
+          width: 60%;
+          padding: 10px 18px;
+        }
+
+        button:hover {
+          opacity: 0.8;
+        }
+
+        .backbtn {
+            background-color: #f44336;
+            width: 20%;
+        }
+
+        #rcorners2 {
+          border-radius: 25px;
+          border: 5px solid #04AA6D;
+          padding: 20px;
+          width: 35%;
+          margin: auto;
+          margin-top: 5%;
+        }
+
+        h1 {
+          text-align: center;
+          font-family: Arial, Helvetica, sans-serif;
+        }
+
+        p {
+          text-align: center;
+        }
+
+        .container {
+           border-radius: 25px;
+           background-color: #eee;
+           padding: 10px;
+        }
+
+        .list {
+          width: 80%;
+          margin: auto;
+          font-family: Arial, Helvetica, sans-serif;
+          font-size: 15px;
+          text-align: center;
+        }
+
+        .list a {
+          background-color: #FFFFFF;
+          border-radius: 10px;
+          border: 2px solid #c0c0c0;
+          color: black;
+          display: block;
+          padding: 12px;
+          text-decoration: none;
+          margin: 5px;
+        }
+
+        .list a:hover {
+          border: 2px solid #000000;
+          background-color: #04AA6D;
+        }
+
+    </style>
+</head>
+<body>
+  <div id="rcorners2">
+      <h1 class="text-muted">All events</h1>
+      <div class="container" align="center">
+       <p class="lead" style="color:red;font-weight: bold;">{{error}}</p>
+        {% for event_name in event_names %}
+          <img src="{{image}}" alt="" uk-cover>
+          <a href="/show_ticket_list_validator/{{event_name}}"><button><b>{{event_name}}</b></button></a>
+        {% endfor %}
+       <p align="center">
+           <a href="/back"><button class="backbtn" type="button">Back</button></a>
+       </p>
+    </div>
+  <footer class="footer">
+    <p>Progetto Software Cybersecurity</p>
+  </footer>
+</body>
+</html>

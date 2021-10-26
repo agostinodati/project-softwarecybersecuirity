@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        button {
+          background-color: #04AA6D;
+          color: white;
+          padding: 14px;
+          margin: 8px;
+          border: none;
+          cursor: pointer;
+          font-family: Arial, Helvetica, sans-serif;
+          width: 50%;
+        }
+
+        button:hover {
+          opacity: 0.8;
+        }
+
+        .backbtn {
+            background-color: #f44336;
+            width: 20%;
+        }
+
+        #rcorners2 {
+          border-radius: 25px;
+          border: 5px solid #04AA6D;
+          padding: 10px;
+          width: 35%;
+          margin: auto;
+          margin-top: 5%;
+        }
+
+        h1 {
+          text-align: center;
+          font-family: Arial, Helvetica, sans-serif;
+        }
+
+        h2 {
+           padding: 10px;
+           border-radius: 10px;
+           background-color: #FFFFFF;
+           font-size: 20px;
+           text-align: center;
+        }
+
+        p {
+          text-align: center;
+        }
+
+        .container {
+           border-radius: 25px;
+           background-color: #eee;
+           padding: 10px;
+        }
+
+        input[type=number] {
+          width: 100%;
+          padding: 12px 20px;
+          margin: 8px 0;
+          display: inline-block;
+          border: 1px solid #ccc;
+          box-sizing: border-box;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="rcorners2" align="center">
+      <h1 class="text-muted">Validate Ticket</h1>
+        <form class="form-signin" action="/validate/{{event_name}}/{{buyer_name}}" method="post">
+            <div class="container">
+                <p class="lead" style="color:red;font-weight: bold;text-align: center;">{{error}}</p>
+                <label> <b>Event name:</b></label> <h2>{{event_name}}</h2>
+                <label><b>Event date:</b></label> <h2>{{event_date}}</h2>
+                <label><b>Event hours:</b></label> <h2>{{event_hours}}</h2>
+                <label><b>Artist name:</b></label> <h2>{{event_artist}}</h2>
+                <label><b>Location:</b></label> <h2>{{event_location}}</h2>
+                <label><b>Description:</b></label> <h2>{{event_description}}</h2>
+            </div>
+            <h1>Ticket Informations</h1>
+            <div class="container">
+                <label> <b>Ticket ID:</b></label> <h2>{{ticket_id}}</h2>
+                <label> <b>Ticket State:</b></label> <h2>{{state}}</h2>
+                <label><b>Seal:</b></label> <h2>{{seal}}</h2>
+                <label><b>Purchase date:</b></label> <h2>{{timestamp}}</h2>
+                <label><b>Ticket price:</b></label> <h2>{{tickets_price}} €</h2>
+                <p align="center">
+                    <button id="btnSignIn" type="submit">Validate</button>
+                    <a href="/back"><button class="backbtn" type="button">Back</button></a>
+                </p>
+            </div>
+        </form>
+  </div>
+  <footer class="footer">
+    <p>Progetto Software Cybersecurity</p>
+  </footer>
+</body>
+</html>
