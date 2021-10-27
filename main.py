@@ -1,7 +1,11 @@
 import configparser
 import datetime
+import os.path
+import time
 from datetime import timedelta
 from hashlib import sha256
+from random import seed
+from random import randint
 
 import flask
 import mysql.connector
@@ -51,6 +55,12 @@ def event_manager():
         messages = request.args['messages']
     except:
         messages = ""
+
+    smart_contract_name, error = blockchain_manager.deploy_smart_contract_new_event("Evento Scaduto", "2020-10-12+00:00",
+                                                                                        100, 10,
+                                                                                        "Artist", "Location",
+                                                                                        "Description",
+                                                                                        session['user'])
     return render_template('event_manager.html', error=messages)
 
 
@@ -210,6 +220,16 @@ def event_create():
 
     date_event_str = date_event_str + '+' + hour_event_str
 
+    # Control on name
+    path_smartcontracts = blockchain_manager.smart_contract_local
+    if os.path.isfile(path_smartcontracts):
+        all_events = blockchain_manager.get_smart_contracts_dict("event")
+        is_populated = bool(all_events)
+        if is_populated is True:
+            if name_event in all_events.keys():
+                return render_template('event_creation.html', error='The name "' + name_event + '" already exists. '
+                                                                                                 '\nPlease, change name.')
+
     # Deployment of the event's smart contract
     try:
         smart_contract_name, error = blockchain_manager.deploy_smart_contract_new_event(name_event, date_event_str,
@@ -217,6 +237,7 @@ def event_create():
                                                                                         artist_event, location_event,
                                                                                         description_event,
                                                                                         session['user'])
+        event_state, e = blockchain_manager.get_event_state(name_event, session['user'])
     except:
         return redirect(url_for("event_manager", messages='Network is offline, please try again in another moment...'))
 
@@ -230,7 +251,7 @@ def event_create():
 
         return render_template('event_info_manager.html', error='The event "' + smart_contract_name + '" was added correctly.', event_name=name_event, event_date=x[0], event_hours=x[1],
                            event_seats=seats_event, seats_price=seats_price, event_artist=artist_event,
-                           event_location=location_event, event_description=description_event)
+                           event_location=location_event, event_description=description_event, state=event_state)
     else:
         return render_template('event_creation.html', error=error)
 
@@ -311,6 +332,7 @@ def event_info_manager(event_name):
     try:
         date, available_seats, seats_price, artist, location, description, e = blockchain_manager.get_event_information(
             session['user'], event_name)
+        event_state, e = blockchain_manager.get_event_state(event_name, session['user'])
     except:
         return redirect(url_for('event_manager', messages='Network is offline, please try again in another moment...'))
 
@@ -319,9 +341,18 @@ def event_info_manager(event_name):
     except:
         x = [None, None]
 
+    date_datetime = datetime.datetime.strptime(x[0], '%Y-%m-%d').date()
+    if date_datetime <= datetime.date.today():
+        blockchain_manager.set_event_state(event_name, "expired", session['user'])
+        blockchain_manager.set_tickets_state(event_name, "obliterated", session['user'])
+        event_state, e = blockchain_manager.get_event_state(event_name, session['user'])
+        render_template('event_info_manager.html', error="The event is expired.", event_name=event_name, event_date=x[0], event_hours=x[1],
+                        event_seats=available_seats, seats_price=seats_price, event_artist=artist,
+                        event_location=location, event_description=description, state=event_state)
+
     return render_template('event_info_manager.html', event_name=event_name, event_date=x[0], event_hours=x[1],
                            event_seats=available_seats, seats_price=seats_price, event_artist=artist,
-                           event_location=location, event_description=description)
+                           event_location=location, event_description=description, state=event_state)
 
 
 # Show the information page of the single event
@@ -369,7 +400,7 @@ def single_event_seats(event_name):
         if event_state == "available":
             if date_datetime <= datetime.date.today():
                 blockchain_manager.set_event_state(event_name, "expired", session['user'])
-                blockchain_manager.set_tickets_state(event_name, "expired", session['user'])
+                blockchain_manager.set_tickets_state(event_name, "obliterated", session['user'])
 
                 return render_template('single_event_seats.html', mode="show", error="Event expired.",
                                        event_hours=x[1], event_date=x[0], event_artist=artist, event_name=event_name,
@@ -679,8 +710,18 @@ def purchase_tickets_event(event_name):
     # Check if the buyer already purchased a ticket for the event
     ticket_already_purchased, ticket_id, err = blockchain_manager.has_ticket(event_name, session['user'])
 
-    # Make the purchase
+    # Simulate the payment success, if not render an error
+    seed(time.time())
+    payment_success = randint(0, 10)
+    if payment_success <= 5:
+        ticket_state, ticket_seal, ticket_date, error_info = blockchain_manager.get_ticket_info(event_name, ticket_id,
+                                                                                                session['user'])
+        return render_template('event_info.html', error='Purchase failed. Try again.',
+                               event_name=event_name, event_date=x[0], event_hours=x[1],
+                               available_tickets=ticket_remaining, tickets_price=ticket_p,
+                               event_artist=artist, event_location=location, event_description=description)
 
+    # Make the purchase
     if ticket_already_purchased is False:
         ticket_id, error_purchase = blockchain_manager.purchase_ticket(event_name, session['user'])
         ticket_state, ticket_seal, ticket_date, error_info = blockchain_manager.get_ticket_info(event_name, ticket_id,
@@ -909,6 +950,7 @@ def validate(event_name, buyer_name):
                            seal=ticket_seal, timestamp=ticket_date, event_artist=artist,
                            event_location=location, event_description=description,
                            error=e)
+
 
 if __name__ == "__main__":
     app.config['ENV'] = 'development'

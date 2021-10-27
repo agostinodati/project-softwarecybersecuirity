@@ -689,11 +689,11 @@ def set_event_state(name_event, state, username):
         try:
             # Send the transaction.
             if state == "expired":
-                tx_hash = event.setExpiredState().transact(transaction)
+                tx_hash = event.functions.setExpiredState().transact(transaction)
             elif state == "cancelled":
-                tx_hash = event.setCancelledState().transact(transaction)
+                tx_hash = event.functions.setCancelledState().transact(transaction)
             elif state == "available":
-                tx_hash = event.setAvailableState().transact(transaction)
+                tx_hash = event.functions.setAvailableState().transact(transaction)
             else:
                 return "State not valid. Valid states: expired, cancelled, available."
 
@@ -836,6 +836,7 @@ def sealer(address_buyer, address_ticket, timestamp):
     hash_seal = sha256(seal.encode('utf-8')).hexdigest()
     print(hash_seal)
     return hash_seal
+
 
 def getTicketList(event_name, username):
     config = configparser.ConfigParser()  # Use to access to the config file
