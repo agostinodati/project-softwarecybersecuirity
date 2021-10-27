@@ -6,7 +6,7 @@
 
 1. Scaricare e installare [XAMPP](https://www.apachefriends.org/it/index.html)
     - Importare in phpmyadmin il file *cybersecurity_project.sql*
-2. Installare [WSL2](https://github.com/SensorsINI/DHP19/blob/master/Eval_2D_triangulation_and_3D_tutorial.ipynb)
+2. Installare [WSL2](https://docs.microsoft.com/en-us/windows/wsl/install-manual)
     - Seguire le istruzioni di “Manual Installation Steps” fino al passo 6 escluso
 3. Installare [Docker](https://docs.docker.com/docker-for-windows/install/)
     - Scaricare l’installer e seguire le istruzioni (verificato con Docker 3.3.1)
