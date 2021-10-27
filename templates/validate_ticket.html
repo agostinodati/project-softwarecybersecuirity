@@ -86,7 +86,9 @@
                 <label><b>Purchase date:</b></label> <h2>{{timestamp}}</h2>
                 <label><b>Ticket price:</b></label> <h2>{{tickets_price}} €</h2>
                 <p align="center">
-                    <button id="btnSignIn" type="submit">Validate</button>
+                    {% if state == "valid" %}
+                        <button id="btnSignIn" type="submit">Validate</button>
+                    {% endif%}
                     <a href="/back"><button class="backbtn" type="button">Back</button></a>
                 </p>
             </div>

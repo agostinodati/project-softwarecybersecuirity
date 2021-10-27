@@ -276,7 +276,7 @@ def purchase_seats(username, name_event, seats_purchase):
         return None
 
 
-def deploy_ticket(event_name, address_event, ticket_price, seats_purchase, username="reseller"):
+def deploy_ticket(event_name, address_event, ticket_price, seats_purchase, username):
     error = None
 
     install_solc('0.7.0')  # Install the compiler of Solidity
@@ -391,7 +391,7 @@ def create_ticket(username, price, seal):
         return ticket_id, None
 
 
-def get_reseller_events(username="reseller"):
+def get_reseller_events(username):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
@@ -430,7 +430,7 @@ def get_reseller_events(username="reseller"):
         return reseller_events, None
 
 
-def get_reseller_tickets_for_event(event_name, username="reseller"):
+def get_reseller_tickets_for_event(event_name, username):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
@@ -466,7 +466,7 @@ def get_reseller_tickets_for_event(event_name, username="reseller"):
         return seats_reseller, None
 
 
-def get_ticket_office_info(name_event, username="reseller"):
+def get_ticket_office_info(name_event, username):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
@@ -493,7 +493,7 @@ def get_ticket_office_info(name_event, username="reseller"):
         return ticket_price, ticket_remaining, None
 
 
-def purchase_ticket(name_event, username="buyer"):
+def purchase_ticket(name_event, username):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
@@ -539,7 +539,7 @@ def purchase_ticket(name_event, username="buyer"):
         return ticket_id, None
 
 
-def get_ticket_info(name_event, ticket_id, username="buyer"):
+def get_ticket_info(name_event, ticket_id, username):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
@@ -567,7 +567,7 @@ def get_ticket_info(name_event, ticket_id, username="buyer"):
         return ticket_state, ticket_seal, ticket_date, None
 
 
-def get_event_state(name_event, username="reseller"):
+def get_event_state(name_event, username):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
@@ -593,7 +593,7 @@ def get_event_state(name_event, username="reseller"):
         return state, None
 
 
-def has_ticket(name_event, username="buyer"):
+def has_ticket(name_event, username):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
@@ -625,7 +625,7 @@ def has_ticket(name_event, username="buyer"):
         return ticket_already_purchased, ticket_id, None
 
 
-def has_event(name_event, username="reseller"):
+def has_event(name_event, username):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
@@ -657,7 +657,7 @@ def has_event(name_event, username="reseller"):
         return event_already_purchased, None
 
 
-def set_event_state(name_event, state, username="reseller"):
+def set_event_state(name_event, state, username):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
@@ -705,7 +705,7 @@ def set_event_state(name_event, state, username="reseller"):
         return None
 
 
-def set_ticket_state(name_event, id, state, username="reseller"):
+def set_ticket_state(name_event, id, state, username):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
@@ -753,7 +753,7 @@ def set_ticket_state(name_event, id, state, username="reseller"):
         return None
 
 
-def get_ticket_office_counter(name_event, username="reseller"):
+def get_ticket_office_counter(name_event, username):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
@@ -780,7 +780,7 @@ def get_ticket_office_counter(name_event, username="reseller"):
         return counter, None
 
 
-def set_tickets_state(event_name, state, username="reseller"):
+def set_tickets_state(event_name, state, username):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 
@@ -837,7 +837,7 @@ def sealer(address_buyer, address_ticket, timestamp):
     print(hash_seal)
     return hash_seal
 
-def getTicketList(event_name, username="validator"):
+def getTicketList(event_name, username):
     config = configparser.ConfigParser()  # Use to access to the config file
     config.read('config.ini')
 

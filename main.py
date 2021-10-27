@@ -346,8 +346,8 @@ def single_event_seats(event_name):
         return redirect(url_for('reseller', messages='Network is offline, please try again in another moment...'))
 
     try:
-        total_tickets = blockchain_manager.get_reseller_tickets_for_event(event_name)
-        ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name)
+        total_tickets = blockchain_manager.get_reseller_tickets_for_event(event_name, session['user'])
+        ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name, session['user'])
         tickets_sold = total_tickets - ticket_remaining
     except:
         ticket_remaining = available_seats
@@ -362,14 +362,14 @@ def single_event_seats(event_name):
 
     date_datetime = datetime.datetime.strptime(x[0], '%Y-%m-%d').date()
 
-    event_already_purchased, err = blockchain_manager.has_event(event_name)
-    event_state, err = blockchain_manager.get_event_state(event_name)
+    event_already_purchased, err = blockchain_manager.has_event(event_name, session['user'])
+    event_state, err = blockchain_manager.get_event_state(event_name, session['user'])
 
     if event_already_purchased is False:
         if event_state == "available":
             if date_datetime <= datetime.date.today():
-                blockchain_manager.set_event_state(event_name, "expired")
-                blockchain_manager.set_tickets_state(event_name, "expired")
+                blockchain_manager.set_event_state(event_name, "expired", session['user'])
+                blockchain_manager.set_tickets_state(event_name, "expired", session['user'])
 
                 return render_template('single_event_seats.html', mode="show", error="Event expired.",
                                        event_hours=x[1], event_date=x[0], event_artist=artist, event_name=event_name,
@@ -434,7 +434,7 @@ def purchase_seats_event(event_name):
                                seats_price=seats_price,
                                event_artist=artist, event_location=location, event_description=description)
 
-    already_purchased = blockchain_manager.has_event(event_name)
+    already_purchased = blockchain_manager.has_event(event_name, session['user'])
 
     if already_purchased is True:
         date, available_seats, ticket_price, artist, location, description, e = blockchain_manager.get_event_information(
@@ -451,7 +451,7 @@ def purchase_seats_event(event_name):
                                event_artist=artist, event_location=location, event_description=description)
 
     # Make the "purchase"
-    event_state, err = blockchain_manager.get_event_state(event_name)
+    event_state, err = blockchain_manager.get_event_state(event_name, session['user'])
     if event_state == "available":
         error_purchase = blockchain_manager.purchase_seats(session['user'], event_name, seats_purchase)
 
@@ -469,7 +469,7 @@ def purchase_seats_event(event_name):
             address_event, abi = blockchain_manager.get_address_abi(event_name, "event")
 
             dict_ticket, error_ticket = blockchain_manager.deploy_ticket(event_name, address_event,
-                                                                         new_ticket_price, seats_purchase)
+                                                                         new_ticket_price, seats_purchase, session['user'])
 
             if error_ticket is None:
                 return render_template('single_event_seats.html', error='Seats purchased successfully.', mode="show",
@@ -515,7 +515,7 @@ def show_events_purchased_reseller():
     list_event_names = []
 
     try:
-        list_event_names, error = blockchain_manager.get_reseller_events()
+        list_event_names, error = blockchain_manager.get_reseller_events(session['user'])
     except Exception as e:
         render_template('show_events.html', error=e)
 
@@ -557,8 +557,8 @@ def single_event_tickets(event_name):
     except:
         x = [None, None]
 
-    total_tickets = blockchain_manager.get_reseller_tickets_for_event(event_name)
-    ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name)
+    total_tickets = blockchain_manager.get_reseller_tickets_for_event(event_name, session['user'])
+    ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name, session['user'])
     tickets_sold = total_tickets - ticket_remaining
 
     mode = "show"
@@ -635,7 +635,7 @@ def event_info(event_name):
     except:
         x = [None, None]
 
-    ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name)
+    ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name, session['user'])
 
     if e is None:
         return render_template('event_info.html', event_name=event_name, event_date=x[0],
@@ -661,7 +661,7 @@ def purchase_tickets_event(event_name):
         date, available_seats, seats_price, artist, location, description, e = blockchain_manager.get_event_information(
             session['user'], event_name)
 
-        ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name)
+        ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name, session['user'])
     except Exception as e:
         return redirect(url_for('reseller', messages='Network is offline, please try again in another moment...' + e))
 
@@ -677,7 +677,7 @@ def purchase_tickets_event(event_name):
                                event_artist=artist, event_location=location, event_description=description)
 
     # Check if the buyer already purchased a ticket for the event
-    ticket_already_purchased, ticket_id, err = blockchain_manager.has_ticket(event_name)
+    ticket_already_purchased, ticket_id, err = blockchain_manager.has_ticket(event_name, session['user'])
 
     # Make the purchase
 
@@ -686,7 +686,7 @@ def purchase_tickets_event(event_name):
         ticket_state, ticket_seal, ticket_date, error_info = blockchain_manager.get_ticket_info(event_name, ticket_id,
                                                                                                 session['user'])
         if error_purchase is None:
-            ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name)
+            ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name, session['user'])
             if error_info is None:
                 return render_template('ticket_info.html', event_name=event_name,
                                        event_date=x[0], event_hours=x[1], available_tickets=ticket_remaining,
@@ -734,7 +734,7 @@ def show_tickets_list():
         return render_template('show_tickets_list.html', error=e)
 
     for event in list_event_names:
-        purchased, ticket_id, err = blockchain_manager.has_ticket(event)
+        purchased, ticket_id, err = blockchain_manager.has_ticket(event, session['user'])
         if purchased:
             list_tickets.append(event)
 
@@ -755,7 +755,7 @@ def show_ticket(event_name):
         date, available_seats, seats_price, artist, location, description, e = blockchain_manager.get_event_information(
             session['user'], event_name)
 
-        ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name)
+        ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name, session['user'])
     except Exception as e:
         return redirect(url_for('reseller', messages='Network is offline, please try again in another moment...' + e))
 
@@ -764,7 +764,7 @@ def show_ticket(event_name):
     except Exception as e:
         x = [None, None]
 
-    purchased, ticket_id, err = blockchain_manager.has_ticket(event_name)
+    purchased, ticket_id, err = blockchain_manager.has_ticket(event_name, session['user'])
     ticket_state, ticket_seal, ticket_date, error_info = blockchain_manager.get_ticket_info(event_name, ticket_id,
                                                                                             session['user'])
 
@@ -818,7 +818,7 @@ def show_ticket_list_validator(event_name):
     list_ticket = []
 
     try:
-        list, e = blockchain_manager.getTicketList(event_name)
+        list, e = blockchain_manager.getTicketList(event_name, session['user'])
         for t in list:
             list_ticket.append(t[5])
     except Exception as e:
@@ -841,7 +841,7 @@ def validate_ticket(event_name, buyer_name):
         date, available_seats, seats_price, artist, location, description, e = blockchain_manager.get_event_information(
             session['user'], event_name)
 
-        ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name)
+        ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name, session['user'])
     except Exception as e:
         return redirect(url_for('reseller', messages='Network is offline, please try again in another moment...' + e))
 
@@ -850,10 +850,12 @@ def validate_ticket(event_name, buyer_name):
     except Exception as e:
         x = [None, None]
 
-    purchased, ticket_id, err = blockchain_manager.has_ticket(event_name)
+    purchased, ticket_id, err = blockchain_manager.has_ticket(event_name, buyer_name)
     ticket_state, ticket_seal, ticket_date, error_info = blockchain_manager.get_ticket_info(event_name, ticket_id,
                                                                                             session['user'])
-
+    print(ticket_id)
+    print(err)
+    print(error_info)
     return render_template("validate_ticket.html", event_name=event_name,
                                    event_date=x[0], event_hours=x[1], available_tickets=ticket_remaining,
                                    tickets_price=ticket_p, ticket_id=ticket_id, state=ticket_state,
@@ -871,11 +873,11 @@ def validate(event_name, buyer_name):
     try:
         date, available_seats, seats_price, artist, location, description, e = blockchain_manager.get_event_information(
             session['user'], event_name)
-        ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name)
+        ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name, session['user'])
 
-        purchased, ticket_id, err = blockchain_manager.has_ticket(event_name)
+        purchased, ticket_id, err = blockchain_manager.has_ticket(event_name, buyer_name)
 
-        e = blockchain_manager.set_ticket_state(event_name, ticket_id, "obliterated", "validator")
+        e = blockchain_manager.set_ticket_state(event_name, ticket_id, "obliterated", session['user'])
     except Exception as err:
         return redirect(url_for('validator', messages='Network is offline, please try again in another moment...' + err))
 
