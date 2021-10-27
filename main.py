@@ -692,7 +692,7 @@ def purchase_tickets_event(event_name):
                                        event_date=x[0], event_hours=x[1], available_tickets=ticket_remaining,
                                        tickets_price=ticket_p, ticket_id=ticket_id, state=ticket_state,
                                        seal=ticket_seal, timestamp=ticket_date, event_artist=artist,
-                                       event_location=location, event_description=description)
+                                       event_location=location, event_description=description, error="Ticket purachsed successfully.")
             else:
                 return render_template('ticket_info.html', error='Purchased correctly but error into getting info '
                                                                  'about ticket: ' + error_info, event_name=event_name,
