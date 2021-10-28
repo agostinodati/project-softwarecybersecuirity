@@ -172,6 +172,7 @@ contract TicketOffice {
     }
 
     function getTicketCounter() view public returns (uint256){
-        return ticketCounter;
+        uint256 count = ticketCounter - 1;
+        return count;
     }
 }

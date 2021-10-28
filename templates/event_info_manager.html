@@ -72,9 +72,13 @@
             <label><b>Artist name:</b></label> <h2>{{event_artist}}</h2>
             <label><b>Location:</b></label> <h2>{{event_location}}</h2>
             <label><b>Description:</b></label> <h2>{{event_description}}</h2>
-            <p align="center">
-                <a href="/back"><button class="backbtn" type="button">Back</button></a>
-            </p>
+            <form class="form-event" action="/delete_event/{{event_name}}" method="post">
+                <input type="hidden" name="event_name" value={{event_name}}>
+                <p>
+                    <button id="btnSignIn" class="btn btn-lg btn-success" type="submit">Delete event.</button>
+                    <a href="/back"><button class="backbtn" type="button">Back</button></a>
+                </p>
+            </form>
         </div>
     </div>
 </div>
