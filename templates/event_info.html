@@ -74,6 +74,7 @@
             <label> <b>Event name:</b></label> <h2>{{event_name}}</h2>
             <label><b>Event date:</b></label> <h2>{{event_date}}</h2>
             <label><b>Event hours:</b></label> <h2>{{event_hours}}</h2>
+            <label><b>Event state:</b></label> <h2>{{state}}</h2>
             <label><b>Artist name:</b></label> <h2>{{event_artist}}</h2>
             <label><b>Location:</b></label> <h2>{{event_location}}</h2>
             <label><b>Description:</b></label> <h2>{{event_description}}</h2>
@@ -82,7 +83,9 @@
             <form class="form-event" action="/purchase_tickets_event/{{event_name}}" method="post">
                 <input type="hidden" name="event_name" value={{event_name}}>
                     <p align="center">
-                        <button id="btnSignIn" class="btn btn-lg btn-success" type="submit">Buy Ticket</button>
+                        {% if state == "available" %}
+                            <button id="btnSignIn" class="btn btn-lg btn-success" type="submit">Buy Ticket</button>
+                        {% endif%}
                         <a href="/back"><button class="backbtn" type="button">Back</button></a>
                     </p>
             </form>

@@ -459,7 +459,7 @@ def get_reseller_tickets_for_event(event_name, username):
 
         try:
             seats_reseller = event.functions.getReseller_seats(address_reseller).call()
-            return seats_reseller
+            return seats_reseller, None
         except Exception as e:
                 return None, e
 
