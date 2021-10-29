@@ -988,25 +988,34 @@ def delete_event(event_name):
         return redirect(url_for('event_manager.html', messages=str(e)))
 
     if state == "available":
-        blockchain_manager.set_event_state(event_name, "cancelled", session['user'])
-        state, err = blockchain_manager.get_event_state(event_name, session['user'])
-        try:
-            blockchain_manager.set_tickets_state(event_name, "cancelled", session['user'])
-        except Exception as e:
-            return render_template('event_info_manager.html', error="Event deleted." + str(e), event_name=event_name,
+        err1 = blockchain_manager.set_event_state(event_name, "cancelled", session['user'])
+        state, err2 = blockchain_manager.get_event_state(event_name, session['user'])
+        err3 = blockchain_manager.set_tickets_state(event_name, "cancelled", session['user'])
+        if err1 is None:
+            if err2 is None:
+                if err3 is None:
+                    return render_template('event_info_manager.html', error="Event cancelled successfully.", event_name=event_name,
+                                           event_date=x[0], event_hours=x[1],
+                                           event_seats=available_seats, seats_price=seats_price, event_artist=artist,
+                                           event_location=location, event_description=description, state=state)
+                else:
+                    return render_template('event_info_manager.html', error=err3,
+                                           event_name=event_name,
+                                           event_date=x[0], event_hours=x[1],
+                                           event_seats=available_seats, seats_price=seats_price, event_artist=artist,
+                                           event_location=location, event_description=description, state=state)
+            else:
+                return render_template('event_info_manager.html', error=err2,
+                                       event_name=event_name,
+                                       event_date=x[0], event_hours=x[1],
+                                       event_seats=available_seats, seats_price=seats_price, event_artist=artist,
+                                       event_location=location, event_description=description, state=state)
+        else:
+            return render_template('event_info_manager.html', error=err1,
+                                   event_name=event_name,
                                    event_date=x[0], event_hours=x[1],
                                    event_seats=available_seats, seats_price=seats_price, event_artist=artist,
                                    event_location=location, event_description=description, state=state)
-        return render_template('event_info_manager.html', error="Event deleted.", event_name=event_name,
-                               event_date=x[0], event_hours=x[1],
-                               event_seats=available_seats, seats_price=seats_price, event_artist=artist,
-                               event_location=location, event_description=description, state=state)
-    else:
-        return render_template('event_info_manager.html', error="The event is already deleted or expired..",
-                               event_name=event_name,
-                               event_date=x[0], event_hours=x[1],
-                               event_seats=available_seats, seats_price=seats_price, event_artist=artist,
-                               event_location=location, event_description=description, state=state)
 
 
 if __name__ == "__main__":
