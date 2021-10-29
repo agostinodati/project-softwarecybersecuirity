@@ -102,7 +102,7 @@
                 <textarea name="input_description" id="input_description" class="form-control" rows="6" placeholder="Description" required autofocus></textarea>
 
                 <p align="center">
-                    <button id="btnSignIn" type="submit">Add event</button>
+                    <button id="btnSignIn" onclick="return confirm('You are going to create a new event. Do you wish to continue?')">Create event</button>
                     <a href="/back"><button class="backbtn" type="button">Back</button></a>
                 </p>
             </form>

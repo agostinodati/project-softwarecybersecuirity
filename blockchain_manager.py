@@ -24,15 +24,17 @@ key_path = './smart_contracts/key.key'
 ticket_smart_contracts_dict_global = {}
 smart_contracts_dict_global = {}
 
+
 def write_key():
-    #generate the key and save it
+    # generate the key and save it
     if isfile(key_path) is False:
         key = Fernet.generate_key()
         with open(key_path, "wb") as key_file:
             key_file.write(key)
 
+
 def load_key():
-    #load the key
+    # load the key
     return open(key_path, "rb").read()
 
 
@@ -42,7 +44,7 @@ def get_smart_contracts_dict(mode):
     :return: Dictionary (name: address) of the smart contracts deployed on the blockchain
     """
 
-    #TODO: Criptare il file locale, salvare in memoria una copia del dizionario per poter avere una copia di backup nel caso il file
+    # TODO: Criptare il file locale, salvare in memoria una copia del dizionario per poter avere una copia di backup nel caso il file
     #      venga perso e salvare il tutto sul db. Risolvere problema omonimi.
     dictio = {}
 
@@ -82,6 +84,7 @@ def store_smart_contract_address(name_contract, address_contract, abi, smart_con
 
     return read_dictionary
 
+
 def deploy_smart_contract_new_event(name_event, date_event, available_seats_event, ticket_price, artist_event,
                                     location_event, description_event, username):
     """
@@ -106,7 +109,7 @@ def deploy_smart_contract_new_event(name_event, date_event, available_seats_even
     try:
         source_code = open(sc_new_event, 'r').read()
         compiled_sol = compile_source(source_code)
-        #print(compiled_sol)
+        # print(compiled_sol)
     except Exception as e:
         error = e
         return None, error
@@ -295,7 +298,7 @@ def deploy_ticket(event_name, address_event, ticket_price, seats_purchase, usern
 
     # Retrieve the contract interface and get bytecode / abi
     try:
-        #waste first item in stack
+        # waste first item in stack
         compiled_sol.popitem()
 
         contract_id, contract_interface = compiled_sol.popitem()
@@ -336,7 +339,8 @@ def deploy_ticket(event_name, address_event, ticket_price, seats_purchase, usern
 
         try:
             print('Sending the transaction...')
-            tx_hash = ticket_office.constructor(address_reseller, address_event, ticket_price, seats_purchase).transact(transaction)
+            tx_hash = ticket_office.constructor(address_reseller, address_event, ticket_price, seats_purchase).transact(
+                transaction)
 
             # Wait for the transaction to be mined, and get the transaction receipt
             tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
@@ -461,7 +465,7 @@ def get_reseller_tickets_for_event(event_name, username):
             seats_reseller = event.functions.getReseller_seats(address_reseller).call()
             return seats_reseller, None
         except Exception as e:
-                return None, e
+            return None, e
 
         return seats_reseller, None
 
@@ -528,7 +532,8 @@ def purchase_ticket(name_event, username):
 
         try:
             # Send the transaction.
-            tx_hash = ticket_office.functions.purchaseTicket(address_buyer, username, seal, timestamp).transact(transaction)
+            tx_hash = ticket_office.functions.purchaseTicket(address_buyer, username, seal, timestamp).transact(
+                transaction)
             tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
 
             ticket_id = ticket_office.functions.getTicketIdByAddressBuyer(address_buyer).call()
@@ -813,21 +818,18 @@ def set_tickets_state(event_name, state, username):
 
         ticket_office = w3.eth.contract(address=address_ticket_office, abi=abi_ticket_office)
 
-        counter = get_ticket_office_counter(event_name)
+        counter, error = get_ticket_office_counter(event_name, username)
 
         try:
-            for id in counter:
+            for id_ticket in range(counter):
                 if state == "valid":
-                    ticket_office.functions.setValidState(id).transaction(transaction)
+                    ticket_office.functions.setValidState((id_ticket+1)).transact(transaction)
                 elif state == "cancelled":
-                    ticket_office.functions.setCancelledState(id).transaction(transaction)
+                    ticket_office.functions.setCancelledState((id_ticket+1)).transact(transaction)
                 elif state == "obliterated":
-                    ticket_office.fucntion.setObliteratedState(id).transaction(transaction)
-            print("Tickets state changed.")
+                    ticket_office.fucntions.setObliteratedState((id_ticket+1)).transact(transaction)
         except Exception as e:
-            print("Tickets state didn't change.")
-            return e
-
+            print(str(e))
         return None
 
 

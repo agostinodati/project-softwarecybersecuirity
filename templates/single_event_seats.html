@@ -90,7 +90,7 @@
             <label for="input_seats" class="form-control"><b>Seats to buy:</b></label>
             <input autocomplete="off" class="form-control" step="0" name="input_seats" id="input_seats" placeholder="Seats" type="number" required>
             <p>
-                <button id="btnSignIn" class="btn btn-lg btn-success" type="submit">Buy event's seats</button>
+                <button id="btnSignIn" onclick="return confirm('You are going to buy seats from this event. Do you wish to continue?')">Buy event's seats</button>
                 <a href="/back"><button class="backbtn" type="button">Back</button></a>
             </p>
         </form>

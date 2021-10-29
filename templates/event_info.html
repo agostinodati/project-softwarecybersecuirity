@@ -84,7 +84,7 @@
                 <input type="hidden" name="event_name" value={{event_name}}>
                     <p align="center">
                         {% if state == "available" %}
-                            <button id="btnSignIn" class="btn btn-lg btn-success" type="submit">Buy Ticket</button>
+                            <button id="btnSignIn" onclick="return confirm('You are going to buy the ticket for the current event. Do you wish to continue?')">Buy ticket</button>
                         {% endif%}
                         <a href="/back"><button class="backbtn" type="button">Back</button></a>
                     </p>

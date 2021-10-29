@@ -309,10 +309,9 @@ def show_events_manager():
         for key in event_dict:
             list_event_names.append(key)
     except Exception as e:
+        if len(list_event_names) == 0:
+            return render_template('show_events_manager.html', error='There are no events currently listed.')
         return render_template('show_events_manager.html', error=e)
-
-    if len(list_event_names) == 0:
-        return render_template('show_events_manager.html', error='There are no events currently listed.')
 
     return render_template('show_events_manager.html', event_names=list_event_names)
 
@@ -339,10 +338,9 @@ def show_events():
         for key in event_dict:
             list_event_names.append(key)
     except Exception as e:
+        if len(list_event_names) == 0:
+            return render_template('show_events.html', mode=mode, error='There are no events currently listed.')
         return render_template('show_events.html', mode=mode, error=e)
-
-    if len(list_event_names) == 0:
-        return render_template('show_events.html', mode=mode, error='There are no events currently listed.')
 
     return render_template('show_events.html', mode=mode, event_names=list_event_names)
 
@@ -530,22 +528,25 @@ def show_events_purchased_reseller():
         session['logged_in'] = False
         return redirect(url_for("login", messages="Access denied."))
 
-    mode = "show"
+    error = None
     list_event_names = []
 
     try:
         list_event_names, error = blockchain_manager.get_reseller_events(session['user'])
     except Exception as e:
+        if len(list_event_names) == 0:
+            return render_template('show_events.html', mode="show", event_names=list_event_names,
+                                   error='No seats have been purchased.')
         render_template('show_events.html', error=e)
 
     if len(list_event_names) == 0:
-        return render_template('show_events.html', mode=mode, event_names=list_event_names,
+        return render_template('show_events.html', mode="show", event_names=list_event_names,
                                error='No seats have been purchased.')
 
     if error is None:
-        return render_template('show_events.html', mode=mode, event_names=list_event_names)
+        return render_template('show_events.html', mode="show", event_names=list_event_names)
     else:
-        return render_template('show_events.html', mode=mode, error='Something went wrong.\nError: ' + str(error))
+        return render_template('show_events.html', mode="show", error='Something went wrong.\nError: ' + str(error))
 
 
 # Show the information page of the single event
@@ -612,10 +613,9 @@ def show_events_buyer():
         for key in event_dict:
             list_event_names.append(key)
     except Exception as e:
+        if len(list_event_names) == 0:
+            return render_template('show_events_buyer.html', error='There are no events currently listed.')
         return render_template('show_events_buyer.html', error=e)
-
-    if len(list_event_names) == 0:
-        return render_template('show_events_buyer.html', error='There are no events currently listed.')
 
     return render_template('show_events_buyer.html', event_names=list_event_names)
 
@@ -772,17 +772,26 @@ def show_tickets_list():
         for key in event_dict:
             list_event_names.append(key)
     except Exception as e:
+        if len(list_event_names) == 0:
+            return render_template('show_tickets_list.html', error='No ticket have been bought.')
         return render_template('show_tickets_list.html', error=e)
 
-    for event in list_event_names:
-        purchased, ticket_id, err = blockchain_manager.has_ticket(event, session['user'])
-        if purchased:
-            list_tickets.append(event)
+    err=None
 
-    if len(list_tickets) == 0:
-        return render_template('show_tickets_list.html', error='There are no tickets purchased.')
-
-    return render_template('show_tickets_list.html', event_names=list_tickets)
+    try:
+        for event in list_event_names:
+            purchased, ticket_id, err = blockchain_manager.has_ticket(event, session['user'])
+            if purchased:
+                list_tickets.append(event)
+        if len(list_tickets) == 0:
+            return render_template('show_tickets_list.html', error='There are no tickets purchased.')
+    except:
+        if len(list_tickets) == 0:
+            return render_template('show_tickets_list.html', error='There are no tickets purchased.')
+    if err is None:
+        return render_template('show_tickets_list.html', event_names=list_tickets)
+    else:
+        return render_template('show_tickets_list.html', event_names=list_tickets, error=err)
 
 
 @app.route("/show_ticket/<event_name>")
@@ -835,10 +844,9 @@ def show_event_validator():
         for key in event_dict:
             list_event_names.append(key)
     except Exception as e:
+        if len(list_event_names) == 0:
+            return render_template('show_event_validator.html', error='There are no events currently listed.')
         return render_template('show_event_validator.html', error=e)
-
-    if len(list_event_names) == 0:
-        return render_template('show_event_validator.html', error='There are no events currently listed.')
 
     return render_template('show_event_validator.html', event_names=list_event_names)
 
@@ -858,6 +866,8 @@ def show_ticket_list_validator(event_name):
         for t in list:
             list_ticket.append(t[5])
     except Exception as e:
+        if len(list_ticket) == 0:
+            return render_template('show_ticket_list_validator.html', error='There are no tickets currently bought.')
         return render_template('show_ticket_list_validator.html', error=e)
 
     if len(list_ticket) == 0:
@@ -947,6 +957,57 @@ def validate(event_name, buyer_name):
                                seal=ticket_seal, timestamp=ticket_date, event_artist=artist,
                                event_location=location, event_description=description,
                                error=message)
+
+@app.route("/delete_event")
+@app.route("/delete_event/<event_name>", methods=['POST'])
+def delete_event(event_name):
+    if session.get('logged_in') is False:
+        return redirect(url_for("login", messages="Please log in."))
+    elif session.get('role') != 'event_manager':
+        session['logged_in'] = False
+        return redirect(url_for("login", messages="Access denied."))
+
+    try:
+        date, available_seats, seats_price, artist, location, description, e = blockchain_manager.get_event_information(
+            session['user'], event_name)
+    except:
+        return redirect(
+            url_for('event_manager', messages='Network is offline, please try again in another moment...' + e))
+
+    try:
+        x = date.split("+")
+    except Exception as e:
+        x = [None, None]
+
+    try:
+        state, err = blockchain_manager.get_event_state(event_name, session['user'])
+        date, available_seats, seats_price, artist, location, description, e = blockchain_manager.get_event_information(
+            session['user'], event_name)
+
+    except Exception as e:
+        return redirect(url_for('event_manager.html', messages=str(e)))
+
+    if state == "available":
+        blockchain_manager.set_event_state(event_name, "cancelled", session['user'])
+        state, err = blockchain_manager.get_event_state(event_name, session['user'])
+        try:
+            blockchain_manager.set_tickets_state(event_name, "cancelled", session['user'])
+        except Exception as e:
+            return render_template('event_info_manager.html', error="Event deleted." + str(e), event_name=event_name,
+                                   event_date=x[0], event_hours=x[1],
+                                   event_seats=available_seats, seats_price=seats_price, event_artist=artist,
+                                   event_location=location, event_description=description, state=state)
+        return render_template('event_info_manager.html', error="Event deleted.", event_name=event_name,
+                               event_date=x[0], event_hours=x[1],
+                               event_seats=available_seats, seats_price=seats_price, event_artist=artist,
+                               event_location=location, event_description=description, state=state)
+    else:
+        return render_template('event_info_manager.html', error="The event is already deleted or expired..",
+                               event_name=event_name,
+                               event_date=x[0], event_hours=x[1],
+                               event_seats=available_seats, seats_price=seats_price, event_artist=artist,
+                               event_location=location, event_description=description, state=state)
+
 
 if __name__ == "__main__":
     app.config['ENV'] = 'development'
