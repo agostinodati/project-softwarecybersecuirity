@@ -27,7 +27,8 @@ database = mysql.connector.connect(
 )
 
 
-def renderState(event_name, event_state, date , user, already_purchased = False, err1 = None, err2 = None, err3 = None, err4 = None):
+def renderState(event_name, event_state, date, user, already_purchased=False, err1=None, err2=None, err3=None,
+                err4=None):
     date_datetime = datetime.datetime.strptime(date, '%Y-%m-%d').date()
     if err4 is None:
         if err3 is None:
@@ -208,6 +209,7 @@ def back():
     except:
         return redirect(url_for('login', messages="Please log in."))
 
+
 # Event Creation page
 @app.route("/event_creation")
 def event_creation():
@@ -373,11 +375,12 @@ def event_info_manager(event_name):
         x = [None, None]
 
     event_state, err = blockchain_manager.get_event_state(event_name, session['user'])
-    state, message, check = renderState(event_name,event_state,x[0],session['user'],False,err,None,None,None)
+    state, message, check = renderState(event_name, event_state, x[0], session['user'], False, err, None, None, None)
 
     return render_template('event_info_manager.html', event_name=event_name, event_date=x[0], event_hours=x[1],
                            event_seats=available_seats, seats_price=seats_price, event_artist=artist,
                            event_location=location, event_description=description, state=state, error=message)
+
 
 # Show the information page of the single event
 @app.route("/single_event_seats")
@@ -418,19 +421,21 @@ def single_event_seats(event_name):
     event_already_purchased, err = blockchain_manager.has_event(event_name, session['user'])
     event_state, err1 = blockchain_manager.get_event_state(event_name, session['user'])
 
-    state, message, check = renderState(event_name,event_state,x[0],session['user'],event_already_purchased,err,err1,None,None)
+    state, message, check = renderState(event_name, event_state, x[0], session['user'], event_already_purchased, err,
+                                        err1, None, None)
     if check == 0:
         return render_template('single_event_seats.html', mode="purchase", error=message,
                                event_hours=x[1], event_date=x[0], event_artist=artist, event_name=event_name,
                                available_tickets=ticket_remaining, ticket_price=seats_price,
                                event_location=location, event_description=description,
-                               tickets_sold=tickets_sold,state=state)
+                               tickets_sold=tickets_sold, state=state)
     else:
         return render_template('single_event_seats.html', mode="show", error=message,
                                event_hours=x[1], event_date=x[0], event_artist=artist, event_name=event_name,
                                available_tickets=ticket_remaining, ticket_price=seats_price,
                                event_location=location, event_description=description,
                                tickets_sold=tickets_sold, state=state)
+
 
 @app.route("/purchase_seats_event/<event_name>", methods=['POST'])
 def purchase_seats_event(event_name):
@@ -471,7 +476,8 @@ def purchase_seats_event(event_name):
     already_purchased, err1 = blockchain_manager.has_event(event_name, session['user'])
     event_state, err = blockchain_manager.get_event_state(event_name, session['user'])
 
-    state, message, check = renderState(event_name, event_state, x[0], session['user'], already_purchased, err, err1,None,None)
+    state, message, check = renderState(event_name, event_state, x[0], session['user'], already_purchased, err, err1,
+                                        None, None)
 
     if check == 0:
         error_purchase = blockchain_manager.purchase_seats(session['user'], event_name, seats_purchase)
@@ -518,6 +524,7 @@ def purchase_seats_event(event_name):
                                event_date=x[0],
                                event_hours=x[1], event_seats=available_seats, seats_price=seats_price,
                                event_artist=artist, event_location=location, event_description=description, state=state)
+
 
 # Show all events purchased for reseller
 @app.route("/show_events_purchased_reseller")
@@ -569,9 +576,6 @@ def single_event_tickets(event_name):
     except:
         return redirect(url_for('reseller', messages='Network is offline, please try again in another moment...'))
 
-    # TODO: Controllo su data (se passata, rendere l'evento non acquistabile) e posti disponibili (se esauriti,
-    #  rendere l'evento non acquistabile.
-
     try:
         x = date.split("+")
     except:
@@ -582,12 +586,13 @@ def single_event_tickets(event_name):
     ticket_p, ticket_remaining, e = blockchain_manager.get_ticket_office_info(event_name, session['user'])
     tickets_sold = total_tickets - ticket_remaining
 
-    state, message, check = renderState(event_name, event_state,x[0],session['user'],False,err,err1,e,None)
+    state, message, check = renderState(event_name, event_state, x[0], session['user'], False, err, err1, e, None)
 
     return render_template('single_event_seats.html', mode="show", event_name=event_name, event_date=x[0],
-                               event_hours=x[1], available_seats=available_seats, available_tickets=ticket_remaining,
-                               ticket_price=ticket_p, tickets_sold=tickets_sold, event_artist=artist,
-                               event_location=location, event_description=description, error=message, state=state)
+                           event_hours=x[1], available_seats=available_seats, available_tickets=ticket_remaining,
+                           ticket_price=ticket_p, tickets_sold=tickets_sold, event_artist=artist,
+                           event_location=location, event_description=description, error=message, state=state)
+
 
 # Show the event list for the buyer
 @app.route("/show_events_buyer")
@@ -640,9 +645,6 @@ def event_info(event_name):
     except:
         return redirect(url_for('buyer', messages='Network is offline, please try again in another moment...'))
 
-    # TODO: Controllo su data (se passata, rendere l'evento non acquistabile) e posti disponibili (se esauriti,
-    #  rendere l'evento non acquistabile.
-
     try:
         x = date.split("+")
     except:
@@ -653,7 +655,7 @@ def event_info(event_name):
 
     already_purchased, ticket_id, err1 = blockchain_manager.has_ticket(event_name, session['user'])
     ticket_state, ticket_seal, ticket_date, error_info = blockchain_manager.get_ticket_info(event_name, ticket_id,
-                                                                                        session['user'])
+                                                                                            session['user'])
 
     if (already_purchased is not True):
         ticket_state = None
@@ -661,13 +663,15 @@ def event_info(event_name):
         ticket_date = None
         error_info = None
 
-    state, message, check = renderState(event_name,event_state,x[0],session['user'],already_purchased, err, err1, e, error_info)
+    state, message, check = renderState(event_name, event_state, x[0], session['user'], already_purchased, err, err1, e,
+                                        error_info)
 
     if check == 1:
         return render_template('ticket_info.html', event_name=event_name, event_date=x[0],
                                event_hours=x[1],
                                available_tickets=ticket_remaining, tickets_price=ticket_p, event_artist=artist,
-                               event_location=location, event_description=description, error="Ticket already bought.", state=ticket_state,ticket_id=ticket_id,seal=ticket_seal,timestamp=ticket_date,)
+                               event_location=location, event_description=description, error="Ticket already bought.",
+                               state=ticket_state, ticket_id=ticket_id, seal=ticket_seal, timestamp=ticket_date, )
     else:
         return render_template('event_info.html', event_name=event_name, event_date=x[0],
                                event_hours=x[1],
@@ -706,7 +710,8 @@ def purchase_tickets_event(event_name):
     ticket_already_purchased, ticket_id, err = blockchain_manager.has_ticket(event_name, session['user'])
 
     event_state, err1 = blockchain_manager.get_event_state(event_name, session['user'])
-    state, message, check = renderState(event_name, event_state, x[0], session['user'], ticket_already_purchased, err, err1, None, None)
+    state, message, check = renderState(event_name, event_state, x[0], session['user'], ticket_already_purchased, err,
+                                        err1, None, None)
 
     # Simulate the payment success, if not render an error
     seed(time.time())
@@ -735,23 +740,28 @@ def purchase_tickets_event(event_name):
                                                                  'about ticket: ' + error_info, event_name=event_name,
                                        event_date=x[0], event_hours=x[1], available_tickets=ticket_remaining,
                                        tickets_price=ticket_p,
-                                       event_artist=artist, event_location=location, event_description=description, state=ticket_state)
+                                       event_artist=artist, event_location=location, event_description=description,
+                                       state=ticket_state)
         else:
             return render_template('event_info.html', error='Purchase failed. Try again.', event_name=event_name,
                                    event_date=x[0], event_hours=x[1], available_tickets=ticket_remaining,
                                    tickets_price=ticket_p,
-                                   event_artist=artist, event_location=location, event_description=description, state=ticket_state)
+                                   event_artist=artist, event_location=location, event_description=description,
+                                   state=ticket_state)
     elif check == 1:
         return render_template('event_info.html', error='Purchase already made. You can\'t purchase more '
                                                         'than one ticket.',
                                event_name=event_name, event_date=x[0], event_hours=x[1],
                                available_tickets=ticket_remaining, tickets_price=ticket_p,
-                               event_artist=artist, event_location=location, event_description=description, state=ticket_state)
+                               event_artist=artist, event_location=location, event_description=description,
+                               state=ticket_state)
     else:
         return render_template('event_info.html', error=message,
                                event_name=event_name, event_date=x[0], event_hours=x[1],
                                available_tickets=ticket_remaining, tickets_price=ticket_p,
-                               event_artist=artist, event_location=location, event_description=description, state=ticket_state)
+                               event_artist=artist, event_location=location, event_description=description,
+                               state=ticket_state)
+
 
 @app.route("/show_tickets_list")
 def show_tickets_list():
@@ -776,7 +786,7 @@ def show_tickets_list():
             return render_template('show_tickets_list.html', error='No ticket have been bought.')
         return render_template('show_tickets_list.html', error=e)
 
-    err=None
+    err = None
 
     try:
         for event in list_event_names:
@@ -815,17 +825,19 @@ def show_ticket(event_name):
         x = [None, None]
 
     purchased, ticket_id, err = blockchain_manager.has_ticket(event_name, session['user'])
-    event_state, err1 = blockchain_manager.get_event_state(event_name,session['user'])
+    event_state, err1 = blockchain_manager.get_event_state(event_name, session['user'])
     ticket_state, ticket_seal, ticket_date, error_info = blockchain_manager.get_ticket_info(event_name, ticket_id,
                                                                                             session['user'])
 
-    state, message, check = renderState(event_name,event_state,x[0],session['user'],False,err,err1,error_info,None)
+    state, message, check = renderState(event_name, event_state, x[0], session['user'], False, err, err1, error_info,
+                                        None)
 
     return render_template('ticket_info.html', event_name=event_name,
                            event_date=x[0], event_hours=x[1], available_tickets=ticket_remaining,
                            tickets_price=ticket_p, ticket_id=ticket_id, state=ticket_state,
                            seal=ticket_seal, timestamp=ticket_date, event_artist=artist,
-                           event_location=location, event_description=description,error=message)
+                           event_location=location, event_description=description, error=message)
+
 
 @app.route("/show_event_validator")
 def show_event_validator():
@@ -908,7 +920,7 @@ def validate_ticket(event_name, buyer_name):
                            event_date=x[0], event_hours=x[1], available_tickets=ticket_remaining,
                            tickets_price=ticket_p, ticket_id=ticket_id, state=ticket_state,
                            seal=ticket_seal, timestamp=ticket_date, event_artist=artist,
-                           event_location=location, event_description=description, buyer_name=buyer_name,error=message)
+                           event_location=location, event_description=description, buyer_name=buyer_name, error=message)
 
 
 @app.route("/validate/<event_name>/<buyer_name>", methods=['POST'])
@@ -958,6 +970,7 @@ def validate(event_name, buyer_name):
                                event_location=location, event_description=description,
                                error=message)
 
+
 @app.route("/delete_event")
 @app.route("/delete_event/<event_name>", methods=['POST'])
 def delete_event(event_name):
@@ -994,7 +1007,8 @@ def delete_event(event_name):
         if err1 is None:
             if err2 is None:
                 if err3 is None:
-                    return render_template('event_info_manager.html', error="Event cancelled successfully.", event_name=event_name,
+                    return render_template('event_info_manager.html', error="Event cancelled successfully.",
+                                           event_name=event_name,
                                            event_date=x[0], event_hours=x[1],
                                            event_seats=available_seats, seats_price=seats_price, event_artist=artist,
                                            event_location=location, event_description=description, state=state)
